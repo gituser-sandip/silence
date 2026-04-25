@@ -1,0 +1,68 @@
+.about-page {
+  padding: 80px 0;
+}
+
+.about-hero {
+  text-align: center;
+  margin-bottom: 80px;
+  padding: 60px 0;
+  background: #f0eeeb;
+}
+
+.about-hero h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.about-hero p {
+  font-size: 18px;
+  color: #666;
+}
+
+.about-content {
+  max-width: 800px;
+  margin: 0 auto 80px;
+}
+
+.about-section {
+  margin-bottom: 60px;
+}
+
+.about-section h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+}
+
+.about-section p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #666;
+}
+
+.about-values {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+  text-align: center;
+  padding: 60px 0;
+  border-top: 1px solid #eee;
+}
+
+.value-item h3 {
+  font-size: 42px;
+  margin-bottom: 10px;
+  font-weight: 300;
+}
+
+.value-item p {
+  color: #888;
+  letter-spacing: 2px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .about-values {
+    grid-template-columns: 1fr;
+  }
+}
