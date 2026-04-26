@@ -76,20 +76,20 @@ function Navbar() {
         </div>
 
         <div className="nav-actions">
-          <button 
+          <button
             className="theme-toggle"
             onClick={() => setIsDark(!isDark)}
             aria-label="Toggle theme"
           >
             {isDark ? '☀️' : '🌙'}
           </button>
-          
+
           <button className="cart-btn">
             <span className="cart-icon">🛍️</span>
             <span className="cart-count">0</span>
           </button>
 
-          <button 
+          <button
             className={`hamburger ${mobileMenu ? 'active' : ''}`}
             onClick={() => setMobileMenu(!mobileMenu)}
           >
@@ -135,7 +135,7 @@ function Home() {
               <span className="title-line accent">Silence</span>
             </h1>
             <p className="hero-description">
-              Discover fragrances that speak volumes through their quiet elegance. 
+              Discover fragrances that speak volumes through their quiet elegance.
               Each scent tells a story of sophistication and mystery.
             </p>
             <div className="hero-buttons">
@@ -148,7 +148,7 @@ function Home() {
               </Link>
             </div>
           </div>
-          
+
           <div className="hero-visual">
             <div className="floating-bottle">
               <div className="bottle-shape"></div>
@@ -158,7 +158,7 @@ function Home() {
             </div>
           </div>
         </div>
-        
+
         <div className="scroll-indicator">
           <span>Scroll to discover</span>
           <div className="scroll-line"></div>
@@ -196,41 +196,49 @@ function Home() {
         </div>
 
         {loading ? (
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-          </div>
+          <div className="loading-spinner"><div className="spinner"></div></div>
         ) : (
           <div className="products-showcase">
             {products.map((product, index) => (
-              <div 
-                key={product.id} 
-                className="product-showcase-card"
-                style={{ animationDelay: `${index * 0.15}s` }}
-              >
-                <div className="product-card-inner">
-                  <div className="product-image-wrapper">
-                    <div className="product-image">
-                      <div className="image-accent"></div>
-                      <span className="product-initial">{product.name.charAt(0)}</span>
-                    </div>
-                    <div className="product-overlay">
-                      <Link to={`/product/${product.id}`} className="overlay-link">
-                        View Details
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="product-info">
-                    <span className="product-category">{product.category}</span>
-                    <h3>{product.name}</h3>
-                    <p className="product-notes">{product.notes}</p>
-                    <div className="product-footer">
-                      <span className="product-price">${product.price}</span>
-                      <button className="add-to-cart-btn">
-                        <span>+</span> Add to Cart
-                      </button>
-                    </div>
-                  </div>
+              <div key={product.id} className="products-grid-item" style={{ animationDelay: `${index * 0.15}s` }}>
+                <div className="product-image">
+                  <span style={{ fontSize: '80px' }}>
+                    {product.category === 'oriental' ? '🌙' :
+                      product.category === 'floral' ? '🌸' :
+                        product.category === 'woody' ? '🌲' :
+                          product.category === 'fresh' ? '🍋' : '👜'}
+                  </span>
                 </div>
+                <h3>{product.name}</h3>
+
+                {/* Star Rating */}
+                <div style={{ color: '#ffd700', marginBottom: '10px' }}>
+                  {'★'.repeat(Math.floor(product.rating))}
+                  {'☆'.repeat(5 - Math.floor(product.rating))}
+                  <span style={{ color: '#888', fontSize: '12px', marginLeft: '5px' }}>
+                    ({product.reviews})
+                  </span>
+                </div>
+
+                <p className="product-notes">{product.notes}</p>
+                <p className="product-price">${product.price}</p>
+
+                {/* Quick Info */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: '15px',
+                  marginBottom: '15px',
+                  fontSize: '12px',
+                  color: '#888'
+                }}>
+                  <span>🕐 {product.longevity}</span>
+                  <span>📅 {product.season}</span>
+                </div>
+
+                <Link to={`/product/${product.id}`} className="btn-primary">
+                  View Details
+                </Link>
               </div>
             ))}
           </div>
@@ -244,12 +252,12 @@ function Home() {
             <span className="section-label">Our Philosophy</span>
             <h2>Mystery in Every Drop</h2>
             <blockquote className="philosophy-quote">
-              "We believe that true luxury is about not needing to shout. 
+              "We believe that true luxury is about not needing to shout.
               It is the quiet presence that lingers long after the conversation has ended."
             </blockquote>
             <p className="philosophy-description">
-              Silence Perfumes was born from a desire to strip away the noise of the modern world. 
-              Each fragrance is a distillation of beauty, crafted by master perfumers using rare 
+              Silence Perfumes was born from a desire to strip away the noise of the modern world.
+              Each fragrance is a distillation of beauty, crafted by master perfumers using rare
               and timeless materials.
             </p>
             <Link to="/about" className="btn-outline">
@@ -297,8 +305,8 @@ function Collections() {
   }, []);
 
   const categories = ['all', 'signature', 'essence', 'fresh', 'oriental'];
-  const filteredProducts = filter === 'all' 
-    ? products 
+  const filteredProducts = filter === 'all'
+    ? products
     : products.filter(p => p.category === filter);
 
   return (
@@ -328,19 +336,42 @@ function Collections() {
         ) : (
           <div className="collections-grid">
             {filteredProducts.map(product => (
-              <Link to={`/product/${product.id}`} key={product.id} className="collection-card">
+              <div key={product.id} className="collection-card">
                 <div className="collection-image">
-                  <span className="collection-initial">{product.name.charAt(0)}</span>
+                  <span style={{ fontSize: '80px' }}>
+                    {product.category === 'oriental' ? '🌙' :
+                      product.category === 'floral' ? '🌸' :
+                        product.category === 'woody' ? '🌲' :
+                          product.category === 'fresh' ? '🍋' : '👜'}
+                  </span>
                   <div className="collection-hover">
-                    <span>Discover</span>
+                    <Link to={`/product/${product.id}`} className="overlay-link">Discover</Link>
                   </div>
                 </div>
                 <div className="collection-info">
+                  <span style={{
+                    fontSize: '10px',
+                    letterSpacing: '2px',
+                    color: '#8b7355',
+                    textTransform: 'uppercase'
+                  }}>
+                    {product.category}
+                  </span>
                   <h3>{product.name}</h3>
+
+                  {/* Star Rating */}
+                  <div style={{ color: '#ffd700', marginBottom: '8px' }}>
+                    {'★'.repeat(Math.floor(product.rating))}
+                    {'☆'.repeat(5 - Math.floor(product.rating))}
+                    <span style={{ color: '#888', fontSize: '12px', marginLeft: '5px' }}>
+                      ({product.reviews})
+                    </span>
+                  </div>
+
                   <p className="collection-notes">{product.notes}</p>
                   <span className="collection-price">${product.price}</span>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
@@ -362,44 +393,133 @@ function ProductDetail() {
   }, [id]);
 
   if (!product) {
-    return (
-      <div className="loading-spinner">
-        <div className="spinner"></div>
-      </div>
-    );
+    return <div style={{ padding: '100px', textAlign: 'center' }}>Loading...</div>;
   }
 
   return (
-    <div className="product-detail-page">
-      <div className="product-detail-container">
-        <div className="product-detail-image">
-          <span className="detail-initial">{product.name.charAt(0)}</span>
+    <div style={{ padding: '80px', maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px' }}>
+        {/* Product Image */}
+        <div style={{
+          height: '500px',
+          background: '#f0eeeb',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '8px'
+        }}>
+          <span style={{ fontSize: '120px' }}>
+            {product.category === 'oriental' ? '🌙' :
+              product.category === 'floral' ? '🌸' :
+                product.category === 'woody' ? '🌲' :
+                  product.category === 'fresh' ? '🍋' : '👜'}
+          </span>
         </div>
-        <div className="product-detail-info">
-          <span className="detail-category">{product.category}</span>
-          <h1>{product.name}</h1>
-          <p className="detail-price">${product.price}</p>
-          <p className="detail-description">{product.description}</p>
-          <div className="detail-notes">
-            <h3>Fragrance Notes</h3>
-            <p>{product.notes}</p>
+
+        {/* Product Info */}
+        <div>
+          <span style={{
+            fontSize: '12px',
+            letterSpacing: '4px',
+            color: '#8b7355',
+            textTransform: 'uppercase'
+          }}>
+            {product.category}
+          </span>
+
+          <h1 style={{ fontSize: '36px', margin: '15px 0' }}>{product.name}</h1>
+
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+            <span style={{ color: '#ffd700', fontSize: '18px' }}>
+              {'★'.repeat(Math.floor(product.rating))}{'☆'.repeat(5 - Math.floor(product.rating))}
+            </span>
+            <span style={{ marginLeft: '10px', color: '#888' }}>
+              {product.rating} ({product.reviews} reviews)
+            </span>
           </div>
-          <button className="btn-primary add-to-cart-large">
+
+          <p style={{ fontSize: '28px', marginBottom: '20px' }}>${product.price}</p>
+
+          <p style={{ lineHeight: '1.8', marginBottom: '20px', color: '#666' }}>
+            {product.description}
+          </p>
+
+          <div style={{
+            padding: '15px',
+            background: '#f0eeeb',
+            borderRadius: '8px',
+            marginBottom: '25px',
+            borderLeft: '3px solid #8b7355'
+          }}>
+            <p style={{ fontSize: '14px', color: '#8b7355', fontStyle: 'italic' }}>
+              💡 {product.reference}
+            </p>
+          </div>
+
+          <div style={{ marginBottom: '25px' }}>
+            <h3 style={{ fontSize: '14px', letterSpacing: '3px', marginBottom: '15px', textTransform: 'uppercase' }}>
+              Fragrance Notes
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              {product.notes.split(' | ').map((note, index) => {
+                const parts = note.split(': ');
+                return (
+                  <div key={index} style={{
+                    padding: '15px',
+                    background: '#faf9f6',
+                    borderRadius: '5px',
+                    textAlign: 'center'
+                  }}>
+                    <p style={{ fontSize: '10px', color: '#8b7355', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '5px' }}>
+                      {parts[0]}
+                    </p>
+                    <p style={{ fontSize: '13px', color: '#666' }}>
+                      {parts[1]}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '10px',
+            marginBottom: '30px'
+          }}>
+            <div style={{ textAlign: 'center', padding: '10px' }}>
+              <p style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase' }}>Size</p>
+              <p style={{ fontWeight: 'bold' }}>{product.size}</p>
+            </div>
+            <div style={{ textAlign: 'center', padding: '10px' }}>
+              <p style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase' }}>Longevity</p>
+              <p style={{ fontWeight: 'bold' }}>{product.longevity}</p>
+            </div>
+            <div style={{ textAlign: 'center', padding: '10px' }}>
+              <p style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase' }}>Season</p>
+              <p style={{ fontWeight: 'bold' }}>{product.season}</p>
+            </div>
+          </div>
+
+          <button style={{
+            width: '100%',
+            padding: '15px',
+            background: '#2c2c2c',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '16px',
+            letterSpacing: '2px',
+            marginBottom: '20px'
+          }}>
             Add to Cart — ${product.price}
           </button>
-          <div className="detail-features">
-            <div className="feature">
-              <span className="feature-icon">🚚</span>
-              <span>Free Shipping over $150</span>
-            </div>
-            <div className="feature">
-              <span className="feature-icon">🔄</span>
-              <span>30-Day Returns</span>
-            </div>
-            <div className="feature">
-              <span className="feature-icon">🎁</span>
-              <span>Complimentary Sample</span>
-            </div>
+
+          <div style={{ display: 'flex', gap: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+            <span>🚚 Free Shipping over $150</span>
+            <span>🔄 30-Day Returns</span>
+            <span>🎁 Free Sample</span>
           </div>
         </div>
       </div>
@@ -421,13 +541,13 @@ function About() {
           <div className="about-text">
             <h2>The Beginning</h2>
             <p>
-              Silence Perfumes was founded on a simple yet profound belief: true luxury 
-              doesn't need to announce itself. It whispers, it lingers, it becomes part 
+              Silence Perfumes was founded on a simple yet profound belief: true luxury
+              doesn't need to announce itself. It whispers, it lingers, it becomes part
               of who you are.
             </p>
             <p>
-              Our journey began in the heart of Grasse, France, where master perfumers 
-              have been crafting exceptional fragrances for centuries. We combined this 
+              Our journey began in the heart of Grasse, France, where master perfumers
+              have been crafting exceptional fragrances for centuries. We combined this
               rich heritage with a modern vision of sustainability and artistry.
             </p>
           </div>
@@ -517,7 +637,7 @@ function Contact() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={e => setFormData({...formData, name: e.target.value})}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
                   required
                   placeholder="Your full name"
                 />
@@ -527,7 +647,7 @@ function Contact() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={e => setFormData({...formData, email: e.target.value})}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
                   required
                   placeholder="your@email.com"
                 />
@@ -537,7 +657,7 @@ function Contact() {
                 <input
                   type="text"
                   value={formData.subject}
-                  onChange={e => setFormData({...formData, subject: e.target.value})}
+                  onChange={e => setFormData({ ...formData, subject: e.target.value })}
                   placeholder="How can we help?"
                 />
               </div>
@@ -545,7 +665,7 @@ function Contact() {
                 <label>Message *</label>
                 <textarea
                   value={formData.message}
-                  onChange={e => setFormData({...formData, message: e.target.value})}
+                  onChange={e => setFormData({ ...formData, message: e.target.value })}
                   required
                   rows="6"
                   placeholder="Tell us more..."
@@ -576,21 +696,21 @@ function Footer() {
             <span className="footer-subtitle">PERFUMES</span>
             <p>Mystery in Every Drop</p>
           </div>
-          
+
           <div className="footer-links">
             <h4>Explore</h4>
             <Link to="/collections">Collections</Link>
             <Link to="/about">Our Story</Link>
             <Link to="/contact">Contact</Link>
           </div>
-          
+
           <div className="footer-links">
             <h4>Customer Care</h4>
             <Link to="/contact">Shipping & Returns</Link>
             <Link to="/contact">FAQ</Link>
             <Link to="/contact">Privacy Policy</Link>
           </div>
-          
+
           <div className="footer-social">
             <h4>Connect</h4>
             <div className="social-icons">
@@ -600,7 +720,7 @@ function Footer() {
             </div>
             <div className="theme-switch">
               <span>Theme</span>
-              <button 
+              <button
                 className="theme-switch-btn"
                 onClick={() => setIsDark(!isDark)}
               >
@@ -609,12 +729,86 @@ function Footer() {
             </div>
           </div>
         </div>
-        
+
         <div className="footer-bottom">
           <p>&copy; 2024 Silence Perfumes. All rights reserved.</p>
         </div>
       </div>
     </footer>
+  );
+}
+
+// Rating Stars Component
+function RatingStars({ rating }) {
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    stars.push(
+      <span key={i} style={{
+        color: i <= Math.floor(rating) ? '#ffd700' : '#ccc',
+        fontSize: '14px'
+      }}>
+        ★
+      </span>
+    );
+  }
+  return <span style={{ marginLeft: '10px' }}>{stars}</span>;
+}
+
+// ProductCard component
+function ProductCard({ product }) {
+  return (
+    <div className="product-card">
+      <div className="product-image">
+        <span style={{ fontSize: '60px' }}>
+          {product.category === 'oriental' ? '🌙' :
+            product.category === 'floral' ? '🌸' :
+              product.category === 'woody' ? '🌲' :
+                product.category === 'fresh' ? '🍋' : '👜'}
+        </span>
+      </div>
+      <div className="product-info">
+        <span style={{
+          fontSize: '10px',
+          letterSpacing: '2px',
+          color: '#8b7355',
+          textTransform: 'uppercase'
+        }}>
+          {product.category}
+        </span>
+        <h3>{product.name}</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
+          <RatingStars rating={product.rating} />
+          <span style={{ fontSize: '12px', color: '#888', marginLeft: '5px' }}>
+            ({product.reviews})
+          </span>
+        </div>
+        <p style={{ color: '#666', fontStyle: 'italic', marginBottom: '10px' }}>
+          {product.notes}
+        </p>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '20px',
+          marginBottom: '15px',
+          fontSize: '12px',
+          color: '#888'
+        }}>
+          <span>🕐 {product.longevity}</span>
+          <span>📅 {product.season}</span>
+        </div>
+        <p style={{
+          fontSize: '24px',
+          fontWeight: 'bold',
+          marginBottom: '15px',
+          color: '#2c2c2c'
+        }}>
+          ${product.price}
+        </p>
+        <Link to={`/product/${product.id}`} className="btn-outline">
+          View Details
+        </Link>
+      </div>
+    </div>
   );
 }
 
