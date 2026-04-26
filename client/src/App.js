@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import './App.css';
 
@@ -23,22 +23,25 @@ function ThemeProvider({ children }) {
   );
 }
 
-// Rating Stars Component
-function RatingStars({ rating }) {
-  const stars = [];
-  for (let i = 1; i <= 5; i++) {
-    stars.push(
-      <span key={i} className={`star ${i <= Math.floor(rating) ? 'filled' : ''}`}>
-        ★
-      </span>
-    );
+// Animated Components
+const fadeInUp = {
+  initial: { opacity: 0, y: 60 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.8, ease: [0.4, 0, 0.2, 1] }
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3
+    }
   }
-  return <div className="rating-stars">{stars}</div>;
-}
+};
 
 // Navbar Component
 function Navbar() {
-  const { isDark, setIsDark } = useContext(ThemeContext);
+  const { isDark, setIsDark } = React.useContext(ThemeContext);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const location = useLocation();
@@ -73,15 +76,26 @@ function Navbar() {
         </div>
 
         <div className="nav-actions">
-          <button className="theme-toggle" onClick={() => setIsDark(!isDark)}>
+          <button 
+            className="theme-toggle"
+            onClick={() => setIsDark(!isDark)}
+            aria-label="Toggle theme"
+          >
             {isDark ? '☀️' : '🌙'}
           </button>
+          
           <button className="cart-btn">
             <span className="cart-icon">🛍️</span>
             <span className="cart-count">0</span>
           </button>
-          <button className={`hamburger ${mobileMenu ? 'active' : ''}`} onClick={() => setMobileMenu(!mobileMenu)}>
-            <span></span><span></span><span></span>
+
+          <button 
+            className={`hamburger ${mobileMenu ? 'active' : ''}`}
+            onClick={() => setMobileMenu(!mobileMenu)}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
           </button>
         </div>
       </div>
@@ -89,73 +103,9 @@ function Navbar() {
   );
 }
 
-// Product Card Component
-function ProductCard({ product, detailed }) {
-  const getCategoryIcon = (category) => {
-    const icons = {
-      oriental: '🌙',
-      floral: '🌸',
-      woody: '🌲',
-      fresh: '🍋',
-      leather: '👜'
-    };
-    return icons[category] || '💎';
-  };
-
-  return (
-    <div className={`product-card ${detailed ? 'detailed' : ''}`}>
-      <div className="product-image-wrapper">
-        <div className="product-image">
-          <div className="image-accent"></div>
-          <span className="product-initial">{getCategoryIcon(product.category)}</span>
-          <span className="product-category-badge">{product.category}</span>
-        </div>
-        <div className="product-overlay">
-          <Link to={`/product/${product.id}`} className="overlay-link">
-            Discover
-          </Link>
-        </div>
-      </div>
-      <div className="product-info">
-        <div className="product-header">
-          <span className="product-category-label">{product.category}</span>
-          <RatingStars rating={product.rating} />
-        </div>
-        <h3>{product.name}</h3>
-        <p className="product-notes">{product.notes}</p>
-        {detailed && (
-          <div className="product-details-mini">
-            <div className="detail-item">
-              <span className="detail-label">Longevity</span>
-              <span className="detail-value">{product.longevity}</span>
-            </div>
-            <div className="detail-item">
-              <span className="detail-label">Season</span>
-              <span className="detail-value">{product.season}</span>
-            </div>
-            <div className="detail-item">
-              <span className="detail-label">Time</span>
-              <span className="detail-value">{product.timeOfDay}</span>
-            </div>
-          </div>
-        )}
-        <div className="product-footer">
-          <span className="product-price">${product.price}</span>
-          <button className="add-to-cart-btn">
-            <span>+</span> Add
-          </button>
-        </div>
-        <div className="product-reviews">
-          <span className="review-count">{product.reviews} reviews</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // Home Page
 function Home() {
-  const { isDark } = useContext(ThemeContext);
+  const { isDark } = React.useContext(ThemeContext);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -163,7 +113,7 @@ function Home() {
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
-        setProducts(data.slice(0, 4));
+        setProducts(data);
         setLoading(false);
       })
       .catch(err => {
@@ -179,7 +129,7 @@ function Home() {
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <div className="hero-text-wrapper">
-            <span className="hero-label">LUXURY FRAGRANCES</span>
+            <span className="hero-label">NEW COLLECTION</span>
             <h1 className="hero-title">
               <span className="title-line">The Art of</span>
               <span className="title-line accent">Silence</span>
@@ -190,13 +140,15 @@ function Home() {
             </p>
             <div className="hero-buttons">
               <Link to="/collections" className="btn-primary">
-                Explore Collection <span className="btn-arrow">→</span>
+                Explore Collection
+                <span className="btn-arrow">→</span>
               </Link>
               <Link to="/about" className="btn-secondary">
                 Our Story
               </Link>
             </div>
           </div>
+          
           <div className="hero-visual">
             <div className="floating-bottle">
               <div className="bottle-shape"></div>
@@ -206,6 +158,7 @@ function Home() {
             </div>
           </div>
         </div>
+        
         <div className="scroll-indicator">
           <span>Scroll to discover</span>
           <div className="scroll-line"></div>
@@ -216,8 +169,8 @@ function Home() {
       <section className="stats-section">
         <div className="stats-grid">
           <div className="stat-item">
-            <span className="stat-number">12</span>
-            <span className="stat-label">Signature Scents</span>
+            <span className="stat-number" data-count="15">15+</span>
+            <span className="stat-label">Years of Heritage</span>
           </div>
           <div className="stat-item">
             <span className="stat-number">200+</span>
@@ -228,8 +181,8 @@ function Home() {
             <span className="stat-label">Natural Essences</span>
           </div>
           <div className="stat-item">
-            <span className="stat-number">4.8</span>
-            <span className="stat-label">Average Rating</span>
+            <span className="stat-number">50+</span>
+            <span className="stat-label">Countries</span>
           </div>
         </div>
       </section>
@@ -238,24 +191,53 @@ function Home() {
       <section className="featured-section">
         <div className="section-header">
           <span className="section-label">Curated Selection</span>
-          <h2>Best Sellers</h2>
-          <p>Our most beloved fragrances, crafted for the connoisseur</p>
+          <h2>Signature Collections</h2>
+          <p>Each fragrance is a masterpiece of carefully selected notes</p>
         </div>
 
         {loading ? (
-          <div className="loading-spinner"><div className="spinner"></div></div>
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+          </div>
         ) : (
           <div className="products-showcase">
             {products.map((product, index) => (
-              <div key={product.id} className="product-showcase-card" style={{ animationDelay: `${index * 0.15}s` }}>
-                <ProductCard product={product} detailed={true} />
+              <div 
+                key={product.id} 
+                className="product-showcase-card"
+                style={{ animationDelay: `${index * 0.15}s` }}
+              >
+                <div className="product-card-inner">
+                  <div className="product-image-wrapper">
+                    <div className="product-image">
+                      <div className="image-accent"></div>
+                      <span className="product-initial">{product.name.charAt(0)}</span>
+                    </div>
+                    <div className="product-overlay">
+                      <Link to={`/product/${product.id}`} className="overlay-link">
+                        View Details
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="product-info">
+                    <span className="product-category">{product.category}</span>
+                    <h3>{product.name}</h3>
+                    <p className="product-notes">{product.notes}</p>
+                    <div className="product-footer">
+                      <span className="product-price">${product.price}</span>
+                      <button className="add-to-cart-btn">
+                        <span>+</span> Add to Cart
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         )}
       </section>
 
-      {/* Categories Section */}
+      {/* Philosophy Section */}
       <section className="philosophy-section">
         <div className="philosophy-content">
           <div className="philosophy-text">
@@ -266,8 +248,9 @@ function Home() {
               It is the quiet presence that lingers long after the conversation has ended."
             </blockquote>
             <p className="philosophy-description">
+              Silence Perfumes was born from a desire to strip away the noise of the modern world. 
               Each fragrance is a distillation of beauty, crafted by master perfumers using rare 
-              and timeless materials. We do not follow trends; we capture moments of profound stillness.
+              and timeless materials.
             </p>
             <Link to="/about" className="btn-outline">
               Learn Our Heritage
@@ -279,12 +262,12 @@ function Home() {
         </div>
       </section>
 
-      {/* Newsletter */}
+      {/* Newsletter Section */}
       <section className="newsletter-section">
         <div className="newsletter-content">
           <h2>Join the Silence</h2>
           <p>Subscribe for exclusive offers and fragrance stories</p>
-          <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
+          <form className="newsletter-form">
             <input type="email" placeholder="Your email address" />
             <button type="submit">Subscribe</button>
           </form>
@@ -299,14 +282,9 @@ function Collections() {
   const [products, setProducts] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const url = filter === 'all' 
-      ? '/api/products' 
-      : `/api/products?category=${filter}`;
-    
-    fetch(url)
+    fetch('http://localhost:5000/api/products')
       .then(res => res.json())
       .then(data => {
         setProducts(data);
@@ -316,14 +294,12 @@ function Collections() {
         console.error('Error:', err);
         setLoading(false);
       });
-  }, [filter]);
+  }, []);
 
-  const categories = ['all', 'oriental', 'floral', 'woody', 'fresh', 'leather'];
-  
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.notes.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const categories = ['all', 'signature', 'essence', 'fresh', 'oriental'];
+  const filteredProducts = filter === 'all' 
+    ? products 
+    : products.filter(p => p.category === filter);
 
   return (
     <div className="collections-page">
@@ -333,35 +309,38 @@ function Collections() {
       </div>
 
       <div className="collections-container">
-        <div className="filter-section">
-          <div className="filter-bar">
-            {categories.map(cat => (
-              <button
-                key={cat}
-                className={`filter-btn ${filter === cat ? 'active' : ''}`}
-                onClick={() => setFilter(cat)}
-              >
-                {cat.charAt(0).toUpperCase() + cat.slice(1)}
-              </button>
-            ))}
-          </div>
-          
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Search fragrances..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+        <div className="filter-bar">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              className={`filter-btn ${filter === cat ? 'active' : ''}`}
+              onClick={() => setFilter(cat)}
+            >
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </button>
+          ))}
         </div>
 
         {loading ? (
-          <div className="loading-spinner"><div className="spinner"></div></div>
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+          </div>
         ) : (
           <div className="collections-grid">
             {filteredProducts.map(product => (
-              <ProductCard key={product.id} product={product} detailed={false} />
+              <Link to={`/product/${product.id}`} key={product.id} className="collection-card">
+                <div className="collection-image">
+                  <span className="collection-initial">{product.name.charAt(0)}</span>
+                  <div className="collection-hover">
+                    <span>Discover</span>
+                  </div>
+                </div>
+                <div className="collection-info">
+                  <h3>{product.name}</h3>
+                  <p className="collection-notes">{product.notes}</p>
+                  <span className="collection-price">${product.price}</span>
+                </div>
+              </Link>
             ))}
           </div>
         )}
@@ -373,11 +352,10 @@ function Collections() {
 // Product Detail Page
 function ProductDetail() {
   const [product, setProduct] = useState(null);
-  const [quantity, setQuantity] = useState(1);
   const id = window.location.pathname.split('/').pop();
 
   useEffect(() => {
-    fetch(`/api/products/${id}`)
+    fetch(`http://localhost:5000/api/products/${id}`)
       .then(res => res.json())
       .then(data => setProduct(data))
       .catch(err => console.error('Error:', err));
@@ -385,7 +363,9 @@ function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="loading-spinner"><div className="spinner"></div></div>
+      <div className="loading-spinner">
+        <div className="spinner"></div>
+      </div>
     );
   }
 
@@ -393,89 +373,20 @@ function ProductDetail() {
     <div className="product-detail-page">
       <div className="product-detail-container">
         <div className="product-detail-image">
-          <div className="detail-image-content">
-            <span className="detail-initial">
-              {product.category === 'oriental' ? '🌙' :
-               product.category === 'floral' ? '🌸' :
-               product.category === 'woody' ? '🌲' :
-               product.category === 'fresh' ? '🍋' : '💎'}
-            </span>
-          </div>
+          <span className="detail-initial">{product.name.charAt(0)}</span>
         </div>
-
         <div className="product-detail-info">
-          <div className="detail-breadcrumb">
-            <Link to="/collections">Collections</Link> / <span>{product.category}</span>
-          </div>
-          
           <span className="detail-category">{product.category}</span>
           <h1>{product.name}</h1>
-          
-          <div className="detail-rating">
-            <RatingStars rating={product.rating} />
-            <span className="detail-reviews">({product.reviews} reviews)</span>
-          </div>
-          
           <p className="detail-price">${product.price}</p>
           <p className="detail-description">{product.description}</p>
-          
-          <div className="detail-reference">
-            <span className="ref-label">Inspiration</span>
-            <p>{product.reference}</p>
-          </div>
-          
           <div className="detail-notes">
             <h3>Fragrance Notes</h3>
-            <div className="notes-breakdown">
-              {product.notes.split(' | ').map((note, index) => (
-                <div key={index} className="note-group">
-                  <span className="note-label">
-                    {index === 0 ? 'Top' : index === 1 ? 'Heart' : 'Base'} Notes
-                  </span>
-                  <p>{note.split(': ')[1]}</p>
-                </div>
-              ))}
-            </div>
+            <p>{product.notes}</p>
           </div>
-
-          <div className="detail-specs">
-            <div className="spec-item">
-              <span className="spec-label">Size</span>
-              <span className="spec-value">{product.size}</span>
-            </div>
-            <div className="spec-item">
-              <span className="spec-label">Concentration</span>
-              <span className="spec-value">{product.concentration}</span>
-            </div>
-            <div className="spec-item">
-              <span className="spec-label">Longevity</span>
-              <span className="spec-value">{product.longevity}</span>
-            </div>
-            <div className="spec-item">
-              <span className="spec-label">Season</span>
-              <span className="spec-value">{product.season}</span>
-            </div>
-            <div className="spec-item">
-              <span className="spec-label">Best Time</span>
-              <span className="spec-value">{product.timeOfDay}</span>
-            </div>
-            <div className="spec-item">
-              <span className="spec-label">Gender</span>
-              <span className="spec-value">{product.gender}</span>
-            </div>
-          </div>
-
-          <div className="detail-actions">
-            <div className="quantity-selector">
-              <button onClick={() => quantity > 1 && setQuantity(quantity - 1)}>−</button>
-              <span>{quantity}</span>
-              <button onClick={() => setQuantity(quantity + 1)}>+</button>
-            </div>
-            <button className="btn-primary add-to-cart-large">
-              Add to Cart — ${(product.price * quantity).toFixed(2)}
-            </button>
-          </div>
-
+          <button className="btn-primary add-to-cart-large">
+            Add to Cart — ${product.price}
+          </button>
           <div className="detail-features">
             <div className="feature">
               <span className="feature-icon">🚚</span>
@@ -496,8 +407,218 @@ function ProductDetail() {
   );
 }
 
-// Keep the About, Contact, and Footer components the same as before...
+// About Page
+function About() {
+  return (
+    <div className="about-page">
+      <div className="page-hero about-hero">
+        <h1>Our Story</h1>
+        <p>The art of silence in a world of noise</p>
+      </div>
 
+      <div className="about-content">
+        <div className="about-grid">
+          <div className="about-text">
+            <h2>The Beginning</h2>
+            <p>
+              Silence Perfumes was founded on a simple yet profound belief: true luxury 
+              doesn't need to announce itself. It whispers, it lingers, it becomes part 
+              of who you are.
+            </p>
+            <p>
+              Our journey began in the heart of Grasse, France, where master perfumers 
+              have been crafting exceptional fragrances for centuries. We combined this 
+              rich heritage with a modern vision of sustainability and artistry.
+            </p>
+          </div>
+          <div className="about-visual">
+            <div className="about-pattern"></div>
+          </div>
+        </div>
+
+        <div className="values-grid">
+          <div className="value-card">
+            <span className="value-icon">🌿</span>
+            <h3>Sustainable Luxury</h3>
+            <p>Ethically sourced ingredients from sustainable farms worldwide</p>
+          </div>
+          <div className="value-card">
+            <span className="value-icon">🎨</span>
+            <h3>Artisanal Craft</h3>
+            <p>Each fragrance is handcrafted by master perfumers with decades of experience</p>
+          </div>
+          <div className="value-card">
+            <span className="value-icon">💎</span>
+            <h3>Rare Ingredients</h3>
+            <p>We source the finest and rarest ingredients from every corner of the globe</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Contact Page
+function Contact() {
+  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await fetch('http://localhost:5000/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  return (
+    <div className="contact-page">
+      <div className="page-hero">
+        <h1>Contact Us</h1>
+        <p>We'd love to hear from you</p>
+      </div>
+
+      <div className="contact-container">
+        <div className="contact-info-section">
+          <div className="contact-info-card">
+            <h3>Visit Us</h3>
+            <p>123 Fragrance Lane<br />New York, NY 10001</p>
+          </div>
+          <div className="contact-info-card">
+            <h3>Call Us</h3>
+            <p>+1 (555) 123-4567</p>
+          </div>
+          <div className="contact-info-card">
+            <h3>Email Us</h3>
+            <p>info@silenceperfumes.com</p>
+          </div>
+        </div>
+
+        <div className="contact-form-section">
+          {submitted ? (
+            <div className="success-message">
+              <span className="success-icon">✓</span>
+              <h3>Message Sent!</h3>
+              <p>Thank you for reaching out. We'll get back to you within 24 hours.</p>
+              <button onClick={() => setSubmitted(false)} className="btn-outline">
+                Send Another Message
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="contact-form">
+              <div className="form-group">
+                <label>Name *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={e => setFormData({...formData, name: e.target.value})}
+                  required
+                  placeholder="Your full name"
+                />
+              </div>
+              <div className="form-group">
+                <label>Email *</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={e => setFormData({...formData, email: e.target.value})}
+                  required
+                  placeholder="your@email.com"
+                />
+              </div>
+              <div className="form-group">
+                <label>Subject</label>
+                <input
+                  type="text"
+                  value={formData.subject}
+                  onChange={e => setFormData({...formData, subject: e.target.value})}
+                  placeholder="How can we help?"
+                />
+              </div>
+              <div className="form-group">
+                <label>Message *</label>
+                <textarea
+                  value={formData.message}
+                  onChange={e => setFormData({...formData, message: e.target.value})}
+                  required
+                  rows="6"
+                  placeholder="Tell us more..."
+                />
+              </div>
+              <button type="submit" className="btn-primary submit-btn">
+                Send Message
+                <span className="btn-arrow">→</span>
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Footer Component
+function Footer() {
+  const { isDark, setIsDark } = React.useContext(ThemeContext);
+
+  return (
+    <footer className="footer">
+      <div className="footer-container">
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <h3>SILENCE</h3>
+            <span className="footer-subtitle">PERFUMES</span>
+            <p>Mystery in Every Drop</p>
+          </div>
+          
+          <div className="footer-links">
+            <h4>Explore</h4>
+            <Link to="/collections">Collections</Link>
+            <Link to="/about">Our Story</Link>
+            <Link to="/contact">Contact</Link>
+          </div>
+          
+          <div className="footer-links">
+            <h4>Customer Care</h4>
+            <Link to="/contact">Shipping & Returns</Link>
+            <Link to="/contact">FAQ</Link>
+            <Link to="/contact">Privacy Policy</Link>
+          </div>
+          
+          <div className="footer-social">
+            <h4>Connect</h4>
+            <div className="social-icons">
+              <a href="#" className="social-icon">IG</a>
+              <a href="#" className="social-icon">FB</a>
+              <a href="#" className="social-icon">PT</a>
+            </div>
+            <div className="theme-switch">
+              <span>Theme</span>
+              <button 
+                className="theme-switch-btn"
+                onClick={() => setIsDark(!isDark)}
+              >
+                {isDark ? 'Light Mode' : 'Dark Mode'}
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div className="footer-bottom">
+          <p>&copy; 2024 Silence Perfumes. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// Main App Component
 function App() {
   return (
     <ThemeProvider>
@@ -509,9 +630,11 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/collections" element={<Collections />} />
               <Route path="/product/:id" element={<ProductDetail />} />
-              {/* Add other routes as needed */}
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
             </Routes>
           </main>
+          <Footer />
         </div>
       </Router>
     </ThemeProvider>
