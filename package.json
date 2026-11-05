@@ -1,27 +1,11 @@
 {
-  "name": "perfume-business-server",
+  "name": "golden-perfume-house",
   "version": "1.0.0",
-  "description": "Backend for Silence Perfumes",
-  "main": "server.js",
+  "private": true,
+  "description": "GOLDEN PERFUME HOUSE fragrance storefront and API",
   "scripts": {
-    "build": "npm rebuild && react-scripts build"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "stripe": "^12.0.0",
-    "nodemailer": "^6.9.1",
-    "mongoose": "^7.0.3"
-  },
-    "scripts": {
-    "start": "cd server && node server.js",
-    "build": "cd client && npm install && npm run build"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.22"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+    "start": "node server/server.js",
+    "build": "npm --prefix client run build",
+    "test:order": "node scripts/verify-order-flow.js"
+  }
 }

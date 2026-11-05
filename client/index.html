@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f1e9" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="description" content="GOLDEN PERFUME HOUSE — More Than a Scent, It's a Feeling. Discover fragrances inspired by memory, emotion, and the human soul." />
+    <meta property="og:title" content="GOLDEN PERFUME HOUSE | More Than a Scent, It's a Feeling" />
+    <meta property="og:description" content="Leave a Feeling. Keep a Memory. Explore the world of GOLDEN PERFUME HOUSE fragrance." />
+    <title>GOLDEN PERFUME HOUSE | More Than a Scent, It's a Feeling</title>
+    <style>
+      body:has(#site-intro){overflow:hidden}
+      #site-intro{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 48%,#59604a 0%,#394231 42%,#222a21 100%);color:#f5e8cf;text-align:center;will-change:transform;transform:translate3d(0,0,0);transition:transform .62s cubic-bezier(.76,0,.24,1),visibility 0s linear .62s}
+      #site-intro::before{content:"";position:absolute;width:min(70vw,560px);aspect-ratio:1;border:1px solid rgba(231,207,158,.28);border-radius:50%;box-shadow:0 0 0 48px rgba(231,207,158,.035),0 0 0 98px rgba(231,207,158,.025);animation:introHalo 5s ease-in-out infinite}
+      #site-intro.is-complete{transform:translate3d(0,-101%,0);visibility:hidden;pointer-events:none}
+      #site-intro.is-complete::before,#site-intro.is-complete .intro-rule::after{animation-play-state:paused}
+      .intro-inner{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:24px}
+      .intro-kicker{font:600 10px/1.2 Arial,sans-serif;letter-spacing:.35em;color:#d7bd8b;animation:introRise .8s ease both}
+      .intro-wordmark{display:flex;flex-direction:column;align-items:center;font:500 clamp(62px,12vw,140px)/1 Georgia,serif;letter-spacing:.14em;margin:20px 0 22px .14em;animation:introWord .85s cubic-bezier(.2,.8,.2,1) both}
+      .intro-wordmark small{font:600 clamp(11px,2.4vw,22px)/1.3 Arial,sans-serif;letter-spacing:.42em;margin-top:14px}
+      .intro-tagline{font:italic clamp(17px,2.3vw,25px)/1.25 Georgia,serif;color:#ead8b6;animation:introRise .9s .45s ease both}
+      .intro-rule{width:min(230px,55vw);height:1px;margin-top:45px;background:rgba(230,208,167,.35);overflow:hidden;animation:introRise .9s .65s ease both}
+      .intro-rule::after{content:"";display:block;width:38%;height:100%;background:#f4d49b;animation:introLine 1.8s 1s ease-in-out infinite}
+      @keyframes introWord{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+      @keyframes introRise{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+      @keyframes introLine{from{transform:translateX(-110%)}to{transform:translateX(300%)}}
+      @keyframes introHalo{50%{transform:scale(1.07);opacity:.6}}
+      @media(prefers-reduced-motion:reduce){#site-intro::before,.intro-kicker,.intro-wordmark,.intro-tagline,.intro-rule,.intro-rule::after{animation:none}#site-intro{transition:none}}
+    </style>
+  </head>
+  <body>
+    <div id="site-intro" role="status" aria-live="polite" aria-label="GOLDEN PERFUME HOUSE is loading">
+      <div class="intro-inner"><span class="intro-wordmark">GOLDEN<small>PERFUME HOUSE</small></span><span class="intro-tagline">More Than a Scent, It's a Feeling.</span><span class="intro-rule" aria-hidden="true"></span></div>
+    </div>
+    <div id="root" aria-busy="true" inert></div>
+    <script>window.setTimeout(function(){var intro=document.getElementById('site-intro');intro?.classList.add('is-complete');window.setTimeout(function(){intro?.remove();document.getElementById('root')?.removeAttribute('inert');document.getElementById('root')?.setAttribute('aria-busy','false')},650)},12000)</script>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

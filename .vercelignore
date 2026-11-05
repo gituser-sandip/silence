@@ -1,0 +1,11 @@
+.env
+.env.local
+server/.env
+.git
+.playwright-cli
+.playwright-mcp
+output
+client/build
+client/node_modules
+server/node_modules
+server/data
