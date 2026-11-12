@@ -334,7 +334,8 @@ export default function PerfumeScene({ progress = 0, onReady }) {
       item.group.visible = false;
       item.sprite.position.lerpVectors(item.source, item.target, centerMix);
       item.sprite.position.y += Math.sin(time * 1.4 + item.start * 20) * 0.1 * (1 - dissolve);
-      item.sprite.material.opacity = entrance * (1 - dissolve * 0.9);
+      item.sprite.visible = p < item.end;
+      item.sprite.material.opacity = entrance * (1 - dissolve);
       item.sprite.scale.setScalar(Math.max(0.001, (item.kind === 'rose' ? 1.65 : 1.48) * entrance * (1 - dissolve * 0.72)));
       item.particles.visible = p > item.start - 0.03 && p < item.end + 0.14;
       item.offsets.forEach((offset, index) => {
