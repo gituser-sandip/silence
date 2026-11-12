@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server/server.js",
     "build": "npm --prefix client run build",
-    "test:order": "node scripts/verify-order-flow.js"
+    "test:order": "node scripts/verify-order-flow.js",
+    "test:keepsakes": "node scripts/verify-keepsakes.js"
   }
 }

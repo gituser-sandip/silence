@@ -5,6 +5,7 @@ import './heritage.css';
 import SceneLoader from './SceneLoader';
 
 const PerfumeScene = React.lazy(() => import('./PerfumeScene'));
+const KeepsakeScene = React.lazy(() => import('./KeepsakeScene'));
 
 const statusOptions = ['Order placed', 'Confirmed', 'Preparing', 'Dispatched', 'Out for delivery', 'Delivered', 'Cancelled'];
 const trackingStages = [
@@ -23,11 +24,11 @@ const stages = [
 ];
 
 const feelings = [
-  { name: 'PURE', meaning: 'The beauty of simplicity and fresh beginnings.' },
-  { name: 'REMINISCENCE', meaning: 'The warmth of memories that never leave.' },
-  { name: 'AFTERGLOW', meaning: 'The impression that remains after a moment has passed.' },
-  { name: 'SOULMATE', meaning: 'The feeling of a meaningful connection.' },
-  { name: 'ETERNAL', meaning: 'The desire to hold onto something timeless.' }
+  { name: 'PURE', meaning: 'The beauty of simplicity and fresh beginnings.', model: '/assets/keepsakes/pure-citrus.glb', preview: '/assets/keepsakes/previews/pure-citrus.webp', alt: 'A gilt parchment keepsake with sculpted jasmine blossoms, layered leaves, and cut bergamot' },
+  { name: 'REMINISCENCE', meaning: 'The warmth of memories that never leave.', model: '/assets/keepsakes/reminiscence-rose.glb', preview: '/assets/keepsakes/previews/reminiscence-rose.webp', alt: 'A gilt parchment keepsake with a sculpted antique rose, stem, leaves, and fallen petals' },
+  { name: 'AFTERGLOW', meaning: 'The impression that remains after a moment has passed.', model: '/assets/keepsakes/afterglow-sandalwood.glb', preview: '/assets/keepsakes/previews/afterglow-sandalwood.webp', alt: 'A gilt parchment keepsake with hand split sandalwood, carved grain, and curled shavings' },
+  { name: 'SOULMATE', meaning: 'The feeling of a meaningful connection.', model: '/assets/keepsakes/soulmate-amber.glb', preview: '/assets/keepsakes/previews/soulmate-amber.webp', alt: 'A gilt parchment keepsake with faceted amber and pressed olive foliage' },
+  { name: 'ETERNAL', meaning: 'The desire to hold onto something timeless.', model: '/assets/keepsakes/eternal-letter.glb', preview: '/assets/keepsakes/previews/eternal-letter.webp', alt: 'A gilt parchment keepsake with folded correspondence, wax seal, sculpted blossom, and flowing silk ribbon' }
 ];
 
 async function api(url, options = {}) {
@@ -140,189 +141,6 @@ function ProductDetail({ products, whatsapp }) {
   const product = products.find(p => p.id === Number(id));
   if (!product) return <div className="page-shell empty-state"><h1>Fragrance not found.</h1><Link to="/collections" className="text-link">Return to collection ↗</Link></div>;
   return <div className="page-shell"><div className="breadcrumb"><Link to="/collections">Collection</Link><span>/</span>{product.name}</div><div className="detail-layout"><div className="detail-visual" style={{ '--card-tone': product.color }}><img className="detail-bottle-photo" src="/assets/exploded/bottle-golden.webp" alt="GOLDEN PERFUME HOUSE Parfum bottle"/><span className="detail-vertical">GOLDEN PERFUME HOUSE PARFUM</span></div><div className="detail-copy"><span className="eyebrow">{product.family}</span><h1>{product.name}</h1><p className="detail-lead">{product.description}</p><div className="note-list"><h2>The composition</h2>{['Opening', 'Heart', 'Base'].map((label, i) => <div key={label}><span>{label}</span><p>{product.notes[i]}</p></div>)}</div><WhatsAppButton product={product} whatsapp={whatsapp}/>{whatsapp && <p className="detail-assist">A personal enquiry opens in WhatsApp. Our team will help from there.</p>}</div></div><div className="detail-bottom"><span>MADE TO BE DISCOVERED</span><Link to="/collections" className="text-link">Explore more scents ↗</Link></div></div>;
-}
-
-function WindRibbon({ className = '' }) {
-  const canvasRef = useRef(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d', { alpha: true });
-    const image = new Image();
-    image.src = '/assets/editorial/story-ribbon.webp';
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let frame = 0;
-    let width = 0;
-    let height = 0;
-    let lastDraw = 0;
-    let visible = true;
-    let gust = 0;
-    let targetGust = 0;
-    let lastScroll = window.scrollY;
-    let gustTimer = 0;
-    const resize = () => {
-      const bounds = canvas.getBoundingClientRect();
-      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
-      width = Math.round(bounds.width * ratio);
-      height = Math.round(bounds.height * ratio);
-      canvas.width = width;
-      canvas.height = height;
-    };
-    const draw = (time) => {
-      frame = requestAnimationFrame(draw);
-      if (!visible || !image.complete || !image.naturalWidth || time - lastDraw < 32) return;
-      lastDraw = time;
-      gust += (targetGust - gust) * .055;
-      context.clearRect(0, 0, width, height);
-      const scale = Math.max(width / image.width, height / image.height);
-      const sourceWidth = width / scale;
-      const sourceHeight = height / scale;
-      const sourceX = (image.width - sourceWidth) / 2;
-      const sourceY = (image.height - sourceHeight) / 2;
-      if (reducedMotion.matches) {
-        context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
-        return;
-      }
-      const phase = time * .0017;
-      const strip = Math.max(3, Math.round(width / 240));
-      for (let x = 0; x < width; x += strip) {
-        const sliceWidth = Math.min(strip, width - x);
-        const position = x / width;
-        const freeEnd = Math.min(1, Math.abs(position - .62) / .62);
-        const wave = Math.sin(position * 13 - phase) * (22 + gust * 12) + Math.sin(position * 25 - phase * 1.55) * (6 + gust * 4);
-        const lift = wave * freeEnd * (width / 1100);
-        context.drawImage(image, sourceX + x / scale, sourceY, sliceWidth / scale + .5, sourceHeight, x, lift, sliceWidth + 1, height);
-      }
-    };
-    resize();
-    frame = requestAnimationFrame(draw);
-    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; });
-    observer.observe(canvas.closest('.story-hero'));
-    const onPointerMove = (event) => {
-      const rect = canvas.closest('.story-hero').getBoundingClientRect();
-      targetGust = event.clientY >= rect.top && event.clientY <= rect.bottom ? Math.max(0, 1 - Math.abs(event.clientX - rect.width * .45) / rect.width) : 0;
-    };
-    const onScroll = () => {
-      const nextScroll = window.scrollY;
-      const velocity = Math.min(1, Math.abs(nextScroll - lastScroll) / 80);
-      lastScroll = nextScroll;
-      targetGust = Math.max(targetGust, velocity);
-      window.clearTimeout(gustTimer);
-      gustTimer = window.setTimeout(() => { targetGust = 0; }, 180);
-    };
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', resize);
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener('pointermove', onPointerMove); window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', resize); window.clearTimeout(gustTimer); };
-  }, []);
-  return <canvas className={`story-hero-ribbon ${className}`.trim()} ref={canvasRef} aria-hidden="true"/>;
-}
-
-function DustField() {
-  const canvasRef = useRef(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d', { alpha: true });
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const particles = Array.from({ length: 46 }, (_, index) => ({
-      x: (index * 37) % 100,
-      y: (index * 61) % 100,
-      size: 0.45 + (index % 4) * 0.35,
-      alpha: 0.05 + (index % 5) * 0.018,
-      phase: index * 1.73,
-      speed: 0.08 + (index % 4) * 0.025,
-    }));
-    let frame = 0;
-    let visible = true;
-    let gust = 0;
-    let targetGust = 0;
-    let lastScroll = window.scrollY;
-    let gustTimer = 0;
-    let cssWidth = 0;
-    let cssHeight = 0;
-    const resize = () => {
-      const bounds = canvas.getBoundingClientRect();
-      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
-      cssWidth = bounds.width;
-      cssHeight = bounds.height;
-      canvas.width = Math.round(cssWidth * ratio);
-      canvas.height = Math.round(cssHeight * ratio);
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    };
-    const draw = (time) => {
-      frame = requestAnimationFrame(draw);
-      if (!visible || reducedMotion.matches || !cssWidth || !cssHeight) return;
-      gust += (targetGust - gust) * .04;
-      context.clearRect(0, 0, cssWidth, cssHeight);
-      particles.forEach((particle) => {
-        particle.x += particle.speed * (.012 + gust * .02);
-        particle.y -= particle.speed * (.006 + gust * .012);
-        if (particle.x > 104) particle.x = -4;
-        if (particle.y < -4) particle.y = 104;
-        const sway = Math.sin(time * .00035 + particle.phase) * (2 + gust * 9);
-        const pulse = .72 + Math.sin(time * .0011 + particle.phase) * .28;
-        context.fillStyle = `rgba(255,244,211,${(particle.alpha * pulse).toFixed(3)})`;
-        context.beginPath();
-        context.arc((particle.x / 100) * cssWidth + sway, (particle.y / 100) * cssHeight, particle.size, 0, Math.PI * 2);
-        context.fill();
-      });
-    };
-    const hero = canvas.closest('.story-hero');
-    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; });
-    observer.observe(hero);
-    const onPointerMove = (event) => {
-      const rect = hero.getBoundingClientRect();
-      targetGust = event.clientY >= rect.top && event.clientY <= rect.bottom ? Math.max(0, 1 - Math.abs(event.clientX - rect.width * .48) / rect.width) : 0;
-    };
-    const onScroll = () => {
-      const nextScroll = window.scrollY;
-      const velocity = Math.min(1, Math.abs(nextScroll - lastScroll) / 80);
-      lastScroll = nextScroll;
-      targetGust = Math.max(targetGust, velocity);
-      window.clearTimeout(gustTimer);
-      gustTimer = window.setTimeout(() => { targetGust = 0; }, 180);
-    };
-    resize();
-    frame = requestAnimationFrame(draw);
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', resize);
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener('pointermove', onPointerMove); window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', resize); window.clearTimeout(gustTimer); };
-  }, []);
-  return <canvas className="story-hero-dust" ref={canvasRef} aria-hidden="true"/>;
-}
-
-function HeroWindFilter() {
-  const turbulenceRef = useRef(null);
-  const displacementRef = useRef(null);
-  useEffect(() => {
-    const hero = document.querySelector('.story-hero');
-    if (!hero) return undefined;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let frame = 0;
-    let visible = true;
-    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; });
-    observer.observe(hero);
-    const animate = (time) => {
-      frame = requestAnimationFrame(animate);
-      if (!visible || reducedMotion.matches) return;
-      const slow = Math.sin(time * .00022);
-      const quick = Math.sin(time * .00061 + 1.8);
-      const base = 0.0068 + (slow + 1) * .00045;
-      const cross = 0.016 + (quick + 1) * .0011;
-      turbulenceRef.current?.setAttribute('baseFrequency', `${base.toFixed(4)} ${cross.toFixed(4)}`);
-      displacementRef.current?.setAttribute('scale', (1.2 + (slow + 1) * .9).toFixed(2));
-    };
-    frame = requestAnimationFrame(animate);
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); };
-  }, []);
-  return <svg className="story-hero-wind-filter" aria-hidden="true" focusable="false">
-    <defs>
-      <filter id="story-hero-wind" x="-8%" y="-8%" width="116%" height="116%" colorInterpolationFilters="sRGB">
-        <feTurbulence ref={turbulenceRef} type="fractalNoise" baseFrequency=".007 .017" numOctaves="2" seed="19" result="windNoise"/>
-        <feDisplacementMap ref={displacementRef} in="SourceGraphic" in2="windNoise" scale="1.8" xChannelSelector="R" yChannelSelector="G"/>
-      </filter>
-    </defs>
-  </svg>;
 }
 
 function About() {
@@ -463,25 +281,9 @@ function About() {
   }, []);
   return <div className="story-page">
     <div className="story-progress" aria-hidden="true"><span className="story-progress-current">01</span><span className="story-progress-track"><span className="story-progress-fill"/></span><span className="story-progress-total">05</span></div>
-    <section className="story-hero" aria-labelledby="story-title">
-      <div className="story-hero-art is-hyperframes is-composite-source is-motion-plate" role="img" aria-label="An illuminated perfume-house letter, rose, silk ribbon, wax seal, and botanical branches on aged paper">
-        <div className="story-hero-layered-scene" aria-hidden="true">
-          <img className="story-hero-layer story-hero-paper-layer story-hero-composite-layer" src="/assets/editorial/story-letter-base.webp" alt="" />
-          <span className="story-hero-seal-sheen" />
-          <span className="story-hero-paper-breathe" />
-          <HeroWindFilter />
-        </div>
-        <img className="story-hero-base story-hero-fallback" src="/assets/editorial/story-letter-option2.png" alt=""/>
-        <video className="story-hero-base story-hero-motion-video" autoPlay muted loop playsInline preload="auto" poster="/assets/editorial/story-letter-base.webp" aria-hidden="true">
-          <source src="/assets/editorial/story-silk.mp4" type="video/mp4"/>
-        </video>
-        <img className="story-hero-flower" src="/assets/editorial/story-flower.webp" alt=""/>
-        <div className="story-hero-petals" aria-hidden="true">
-          <img className="story-hero-petal story-hero-petal-one" src="/assets/editorial/story-petal.webp" alt=""/>
-          <img className="story-hero-petal story-hero-petal-two" src="/assets/editorial/story-petal.webp" alt=""/>
-          <img className="story-hero-petal story-hero-petal-three" src="/assets/editorial/story-petal.webp" alt=""/>
-        </div>
-        <DustField/>
+    <section className="story-hero story-hero-atelier" aria-labelledby="story-title">
+      <div className="story-hero-art is-atelier" role="img" aria-label="Oil painting of three perfumers working among amber bottles and copper stills in a vintage atelier">
+        <img className="story-hero-base story-atelier-painting" src="/assets/editorial/about-perfumers-atelier.webp" alt="" fetchpriority="high"/>
       </div>
       <div className="story-hero-copy"><span className="story-index">GOLDEN PERFUME HOUSE / A STORY IN FIVE CHAPTERS</span><h1 id="story-title">Every scent<br/>has a <em>story.</em></h1><p>Every story leaves a feeling.</p><span className="story-scroll">SCROLL TO TURN THE PAGE <span aria-hidden="true">↓</span></span></div>
     </section>
@@ -496,7 +298,7 @@ function About() {
       <img className="story-wind-petal story-wind-petal-keepsakes" src="/assets/editorial/story-petal.webp" alt="" aria-hidden="true"/>
       <div className="story-section-heading story-reveal"><span className="story-index">04 / THE COLLECTION</span><h2 id="keepsakes-title">Five feelings.<br/><em>Endless stories.</em></h2><p>Each fragrance is an invitation to discover another side of yourself.</p></div>
       <div className="story-feelings-scroll"><div className="story-feelings-stage">
-        <div className="story-feelings-image"><img src="/assets/editorial/story-keepsakes.webp" alt="Five illustrated keepsake cards with citrus, rose, sandalwood, amber, and a ribbon-tied letter" loading="lazy" decoding="async" style={{ objectPosition: `${activeFeeling * 25}% center` }}/></div>
+        <div className="story-feelings-image"><React.Suspense fallback={<img src={feelings[activeFeeling].preview} alt=""/>}><KeepsakeScene key={feelings[activeFeeling].model} model={feelings[activeFeeling].model} preview={feelings[activeFeeling].preview} alt={feelings[activeFeeling].alt}/></React.Suspense></div>
         <div className="story-feelings-copy"><span className="story-index">THE COLLECTION / FIVE FEELINGS</span><div className="story-feelings-stack">{feelings.map((item, index) => <article className={`${activeFeeling === index ? 'is-active' : ''}${item.name.length > 10 ? ' is-long' : ''}`} key={item.name}><span>0{index + 1} / 05</span><h3>{item.name}</h3><p>{item.meaning}</p></article>)}</div><div className="story-feelings-steps" aria-hidden="true">{feelings.map((item, index) => <span className={activeFeeling === index ? 'is-active' : ''} key={item.name}/>)}</div></div>
       </div></div>
     </section>
