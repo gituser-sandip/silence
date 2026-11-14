@@ -31,6 +31,8 @@ const feelings = [
   { name: 'ETERNAL', meaning: 'The desire to hold onto something timeless.', model: '/assets/keepsakes/eternal-letter.glb', preview: '/assets/keepsakes/previews/eternal-letter.webp', alt: 'A gilt parchment keepsake with folded correspondence, wax seal, sculpted blossom, and flowing silk ribbon' }
 ];
 
+const formatPrice = value => Number.isFinite(value) ? new Intl.NumberFormat('en-NP', { style: 'currency', currency: 'NPR', maximumFractionDigits: 0 }).format(value) : 'Price pending verification';
+
 async function api(url, options = {}) {
   const response = await fetch(url, { ...options, headers: { 'Content-Type': 'application/json', ...options.headers } });
   const data = await response.json();
@@ -44,7 +46,7 @@ function ScrollToTop() {
   return null;
 }
 
-function Header() {
+function Header({ cartCount }) {
   const [open, setOpen] = useState(false);
   const menuButtonRef = useRef(null);
   const location = useLocation();
@@ -66,36 +68,57 @@ function Header() {
     <button ref={menuButtonRef} type="button" className="menu-button" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-controls="main-navigation" aria-expanded={open}>{open ? '×' : '☰'}</button>
     <nav id="main-navigation" className={open ? 'site-nav open' : 'site-nav'} aria-label="Main navigation">
       <NavLink to="/collections">The collection</NavLink>
+      <NavLink to="/scent-finder">Help me choose</NavLink>
+      <NavLink to="/guide">Fragrance guide</NavLink>
       <NavLink to="/about">Our story</NavLink>
       <NavLink to="/testimonials">Client stories</NavLink>
       <NavLink to="/track">Track order</NavLink>
+      <NavLink to="/cart">Bag ({cartCount})</NavLink>
+      {location.pathname.startsWith('/admin') && <NavLink to="/admin/operations">Catalogue & queries</NavLink>}
     </nav>
   </header>;
 }
 
-function Footer() {
+function Newsletter({ enabled }) {
+  const [email, setEmail] = useState('');
+  const [consent, setConsent] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
+  async function submit(event) {
+    event.preventDefault(); setError(''); setNotice('');
+    try { const result = await api('/api/newsletter', { method: 'POST', body: JSON.stringify({ email, consent }) }); setNotice(result.message); setEmail(''); setConsent(false); }
+    catch (e) { setError(e.message); }
+  }
+  if (!enabled) return <p className="footer-note">Newsletter signup opens when secure subscriber storage is configured.</p>;
+  return <form className="newsletter-form" onSubmit={submit}><label>Email address<input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email"/></label><label className="consent-check"><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} required/> I agree to receive occasional fragrance updates and offers. I can unsubscribe at any time.</label><button type="submit">Join the list →</button>{notice && <p role="status">{notice}</p>}{error && <p className="form-error" role="alert">{error}</p>}</form>;
+}
+
+function Footer({ config }) {
   return <footer className="site-footer">
     <div className="footer-top"><div><span className="eyebrow">MORE THAN A SCENT, IT'S A FEELING</span><h2>Leave a feeling.<br/><em>Keep a memory.</em></h2></div><Link className="outline-button light" to="/collections">Explore the collection <span>↗</span></Link></div>
     <div className="footer-grid">
       <div><Link className="brand footer-brand" to="/"><span>GOLDEN</span><small>PERFUME HOUSE</small></Link><p>More Than a Scent, It's a Feeling.</p></div>
       <div><span className="footer-heading">Explore</span><Link to="/collections">Collection</Link><Link to="/about">Our story</Link><Link to="/testimonials">Client stories</Link></div>
-      <div><span className="footer-heading">Assistance</span><Link to="/track">Track an order</Link><Link to="/contact">Contact</Link></div>
-      <div><span className="footer-heading">The house</span><p>Every story deserves a scent.</p></div>
+      <div><span className="footer-heading">Assistance</span><Link to="/scent-finder">Help me choose</Link><Link to="/guide">Fragrance guide</Link><Link to="/faq">FAQ</Link><Link to="/track">Track an order</Link><Link to="/review">Leave a verified review</Link><Link to="/contact">Contact</Link></div>
+      <div><span className="footer-heading">Trust & policies</span><Link to="/trust">Sourcing & trust</Link><Link to="/delivery">Delivery</Link><Link to="/returns">Returns</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div>
+      <div className="footer-newsletter"><span className="footer-heading">Stay close</span><p>New arrivals, useful fragrance guidance and occasional offers. No unnecessary messages.</p><Newsletter enabled={config.newsletterEnabled}/></div>
     </div>
     <div className="footer-bottom"><span>© {new Date().getFullYear()} GOLDEN PERFUME HOUSE</span><span>Leave a Feeling. Keep a Memory.</span></div>
   </footer>;
 }
 
-function ProductCard({ product, index }) {
+function ProductCard({ product, index, onAdd }) {
+  const purchasable = product.verified && Number.isFinite(product.price) && product.stock > 0;
   return <article className="product-card">
     <Link to={`/product/${product.id}`} className="product-image" style={{ '--card-tone': product.color }} aria-label={`View ${product.name}`}>
       <span className="product-number">0{index + 1} / 04</span><img className="product-bottle-photo" src="/assets/exploded/bottle-golden.webp" alt="" loading="lazy"/><span className="product-discover">Discover fragrance ↗</span>
     </Link>
-    <div className="product-caption"><div><span className="eyebrow">{product.family}</span><h3>{product.name}</h3></div><Link to={`/product/${product.id}`} aria-label={`Explore ${product.name}`} className="round-arrow">↗</Link></div>
+    <div className="product-caption"><div><span className="eyebrow">{product.family}</span><h3>{product.name}</h3><p>{product.size || 'Size pending'} · {formatPrice(product.price)}</p></div><Link to={`/product/${product.id}`} aria-label={`Explore ${product.name}`} className="round-arrow">↗</Link></div>
+    {purchasable ? <button className="card-add" type="button" onClick={() => onAdd(product.id)}>Add to bag</button> : <span className="availability-note">{product.availability}</span>}
   </article>;
 }
 
-function Home({ products, onSceneReady }) {
+function Home({ products, onSceneReady, onAdd }) {
   const ritualRef = useRef(null);
   const [progress, setProgress] = useState(0);
   useEffect(() => {
@@ -118,16 +141,27 @@ function Home({ products, onSceneReady }) {
     </section>
     <div className="editorial-band"><span>LEAVE A FEELING</span><span className="band-symbol">✦</span><span>KEEP A MEMORY</span><span className="band-symbol">✦</span><span>EVERY STORY DESERVES A SCENT</span></div>
     <section className="intro-section"><span className="eyebrow">THE GOLDEN PERFUME HOUSE PHILOSOPHY</span><h2>Fragrance is personal.<br/><em>Emotion is universal.</em></h2><p>A scent can bring someone closer, return us to a moment, or express what words cannot. We create for the feelings that stay with you.</p></section>
-    <section className="featured-section"><div className="section-title-row"><div><span className="eyebrow">THE COLLECTION</span><h2>Scents with a <em>story.</em></h2></div><Link to="/collections" className="text-link">View all fragrances <span>↗</span></Link></div><div className="featured-grid">{products.filter(p => p.featured).map((product, index) => <ProductCard key={product.id} product={product} index={index}/>)}</div></section>
+    <section className="featured-section"><div className="section-title-row"><div><span className="eyebrow">THE COLLECTION</span><h2>Scents with a <em>story.</em></h2></div><Link to="/collections" className="text-link">View all fragrances <span>↗</span></Link></div><div className="featured-grid">{products.filter(p => p.featured).map((product, index) => <ProductCard key={product.id} product={product} index={index} onAdd={onAdd}/>)}</div></section>
     <section className="story-panel"><div className="story-visual"><img className="atelier-image" src="/assets/editorial/story-atelier-recreated.webp" alt="A vintage perfumer's workshop with copper equipment, flowers, citrus, and glass flasks" loading="lazy"/><span>THE ART OF COMPOSITION</span></div><div className="story-content"><span className="eyebrow">OUR STORY</span><h2>Every scent has<br/><em>a story.</em></h2><p>We began with the bond between fragrance and memory. A familiar note can bring back a person, a place, or a feeling we thought we had forgotten.</p><Link className="outline-button" to="/about">Discover our story <span>↗</span></Link></div></section>
     <section className="testimonial-teaser"><span className="eyebrow">CLIENT STORIES</span><h2>Stories worth <em>sharing.</em></h2><p>Real words and moments from the people who wear GOLDEN PERFUME HOUSE.</p><Link to="/testimonials" className="text-link">Explore client stories <span>↗</span></Link></section>
   </>;
 }
 
-function Collections({ products }) {
-  const [filter, setFilter] = useState('All');
-  const categories = ['All', ...new Set(products.map(p => p.category))];
-  return <div className="page-shell"><div className="page-heading"><span className="eyebrow">THE COLLECTION</span><h1>Find your <em>signature.</em></h1><p>Distinct expressions, composed with intention. Discover the one that feels unmistakably yours.</p></div><div className="filters" aria-label="Filter fragrances">{categories.map(category => <button key={category} className={filter === category ? 'selected' : ''} onClick={() => setFilter(category)}>{category}</button>)}</div><div className="collection-grid">{products.filter(p => filter === 'All' || p.category === filter).map((product, index) => <ProductCard key={product.id} product={product} index={index}/>)}</div></div>;
+function Collections({ products, onAdd }) {
+  const [filters, setFilters] = useState({ search: '', category: 'All', family: 'All', size: 'All', occasion: 'All', availability: 'All', maxPrice: '' });
+  const values = key => ['All', ...new Set(products.flatMap(product => key === 'occasion' ? product.occasions : [product[key]]).filter(Boolean))];
+  const visible = products.filter(product => {
+    const query = filters.search.toLowerCase();
+    return (!query || `${product.name} ${product.brand} ${product.family} ${product.notes.join(' ')}`.toLowerCase().includes(query))
+      && (filters.category === 'All' || product.category === filters.category)
+      && (filters.family === 'All' || product.family === filters.family)
+      && (filters.size === 'All' || product.size === filters.size)
+      && (filters.occasion === 'All' || product.occasions.includes(filters.occasion))
+      && (filters.availability === 'All' || (filters.availability === 'In stock' ? product.stock > 0 : product.stock === 0))
+      && (!filters.maxPrice || (Number.isFinite(product.price) && product.price <= Number(filters.maxPrice)));
+  });
+  const update = event => setFilters({ ...filters, [event.target.name]: event.target.value });
+  return <div className="page-shell"><div className="page-heading"><span className="eyebrow">THE COLLECTION</span><h1>Find your <em>signature.</em></h1><p>Search by character, family and occasion. Prices and availability appear only after supplier verification.</p></div><details className="catalogue-filters" open><summary>Search and filters</summary><div><label>Search<input name="search" type="search" value={filters.search} onChange={update} placeholder="Name, family or note"/></label><label>Category<select name="category" value={filters.category} onChange={update}>{values('category').map(value => <option key={value}>{value}</option>)}</select></label><label>Fragrance family<select name="family" value={filters.family} onChange={update}>{values('family').map(value => <option key={value}>{value}</option>)}</select></label><label>Bottle size<select name="size" value={filters.size} onChange={update}>{values('size').map(value => <option key={value}>{value}</option>)}</select></label><label>Occasion<select name="occasion" value={filters.occasion} onChange={update}>{values('occasion').map(value => <option key={value}>{value}</option>)}</select></label><label>Availability<select name="availability" value={filters.availability} onChange={update}><option>All</option><option>In stock</option><option>Unavailable</option></select></label><label>Maximum price (NPR)<input name="maxPrice" type="number" min="0" value={filters.maxPrice} onChange={update}/></label><button type="button" onClick={() => setFilters({ search: '', category: 'All', family: 'All', size: 'All', occasion: 'All', availability: 'All', maxPrice: '' })}>Clear filters</button></div></details><p className="result-count" role="status">{visible.length} fragrance{visible.length === 1 ? '' : 's'} found</p>{visible.length ? <div className="collection-grid">{visible.map((product, index) => <ProductCard key={product.id} product={product} index={index} onAdd={onAdd}/>)}</div> : <div className="empty-results"><h2>No matching fragrances.</h2><p>Clear a filter or ask the house for personal help.</p><Link to="/scent-finder" className="text-link">Help me choose ↗</Link></div>}</div>;
 }
 
 function WhatsAppButton({ product, whatsapp, className = 'solid-button' }) {
@@ -136,11 +170,12 @@ function WhatsAppButton({ product, whatsapp, className = 'solid-button' }) {
   return <a className={className} target="_blank" rel="noopener noreferrer" href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}>Enquire on WhatsApp <span>↗</span></a>;
 }
 
-function ProductDetail({ products, whatsapp }) {
+function ProductDetail({ products, whatsapp, onAdd }) {
   const { id } = useParams();
   const product = products.find(p => p.id === Number(id));
   if (!product) return <div className="page-shell empty-state"><h1>Fragrance not found.</h1><Link to="/collections" className="text-link">Return to collection ↗</Link></div>;
-  return <div className="page-shell"><div className="breadcrumb"><Link to="/collections">Collection</Link><span>/</span>{product.name}</div><div className="detail-layout"><div className="detail-visual" style={{ '--card-tone': product.color }}><img className="detail-bottle-photo" src="/assets/exploded/bottle-golden.webp" alt="GOLDEN PERFUME HOUSE Parfum bottle"/><span className="detail-vertical">GOLDEN PERFUME HOUSE PARFUM</span></div><div className="detail-copy"><span className="eyebrow">{product.family}</span><h1>{product.name}</h1><p className="detail-lead">{product.description}</p><div className="note-list"><h2>The composition</h2>{['Opening', 'Heart', 'Base'].map((label, i) => <div key={label}><span>{label}</span><p>{product.notes[i]}</p></div>)}</div><WhatsAppButton product={product} whatsapp={whatsapp}/>{whatsapp && <p className="detail-assist">A personal enquiry opens in WhatsApp. Our team will help from there.</p>}</div></div><div className="detail-bottom"><span>MADE TO BE DISCOVERED</span><Link to="/collections" className="text-link">Explore more scents ↗</Link></div></div>;
+  const purchasable = product.verified && Number.isFinite(product.price) && product.stock > 0;
+  return <div className="page-shell"><div className="breadcrumb"><Link to="/collections">Collection</Link><span>/</span>{product.name}</div><div className="detail-layout"><div className="detail-visual" style={{ '--card-tone': product.color }}><img className="detail-bottle-photo" src="/assets/exploded/bottle-golden.webp" alt={`${product.name} perfume bottle`}/><span className="detail-vertical">{product.brand.toUpperCase()}</span></div><div className="detail-copy"><span className="eyebrow">{product.brand} · {product.family}</span><h1>{product.name}</h1><p className="product-meta"><strong>{product.size || 'Size pending verification'}</strong><strong>{formatPrice(product.price)}</strong><span>{product.availability}</span></p><p className="detail-lead">{product.description}</p><div className="note-list"><h2>The composition</h2>{['Opening', 'Heart', 'Base'].map((label, i) => <div key={label}><span>{label}</span><p>{product.notes[i]}</p></div>)}</div><p><strong>Fragrance family:</strong> {product.family}<br/><strong>Suggested occasions:</strong> {product.occasions.join(', ')}</p>{purchasable && <button className="solid-button" type="button" onClick={() => onAdd(product.id)}>Add to bag →</button>}<WhatsAppButton product={product} whatsapp={whatsapp}/>{whatsapp && <p className="detail-assist">A personal enquiry opens in WhatsApp. Our team will help with availability, delivery and returns.</p>}<div className="reassurance-links"><Link to="/delivery">Delivery information</Link><Link to="/returns">Returns policy</Link><Link to="/trust">Sourcing & trust</Link><Link to="/faq">Frequently asked questions</Link></div></div></div><div className="detail-bottom"><span>PRODUCT INFORMATION IS PUBLISHED ONLY AFTER VERIFICATION</span><Link to="/collections" className="text-link">Explore more scents ↗</Link></div></div>;
 }
 
 function About() {
@@ -306,11 +341,87 @@ function About() {
   </div>;
 }
 
+function ScentFinder({ products }) {
+  const [answers, setAnswers] = useState({ family: 'All', occasion: 'All', budget: '' });
+  const [searched, setSearched] = useState(false);
+  const available = products.filter(product => product.verified && product.stock > 0);
+  const matches = available.filter(product => (answers.family === 'All' || product.category === answers.family) && (answers.occasion === 'All' || product.occasions.includes(answers.occasion)) && (!answers.budget || product.price <= Number(answers.budget)));
+  return <div className="page-shell narrow"><div className="page-heading"><span className="eyebrow">PERSONAL GUIDANCE</span><h1>Help me <em>choose.</em></h1><p>Tell us the scent family, occasion and budget you have in mind. We only recommend products confirmed as in stock.</p></div><form className="guided-form" onSubmit={event => { event.preventDefault(); setSearched(true); }}><label>Preferred scent family<select value={answers.family} onChange={e => setAnswers({ ...answers, family: e.target.value })}><option>All</option>{[...new Set(products.map(product => product.category))].map(value => <option key={value}>{value}</option>)}</select></label><label>Occasion<select value={answers.occasion} onChange={e => setAnswers({ ...answers, occasion: e.target.value })}><option>All</option>{[...new Set(products.flatMap(product => product.occasions))].map(value => <option key={value}>{value}</option>)}</select></label><label>Maximum budget (NPR)<input type="number" min="0" value={answers.budget} onChange={e => setAnswers({ ...answers, budget: e.target.value })}/></label><button className="solid-button">Find suitable fragrances →</button></form>{searched && <section className="finder-results" aria-live="polite"><h2>{matches.length ? 'Suitable choices' : 'No verified in-stock match yet.'}</h2>{matches.map(product => <Link key={product.id} to={`/product/${product.id}`}>{product.name} <span>{formatPrice(product.price)} ↗</span></Link>)}{!matches.length && <p>Supplier product data is still being confirmed. <Link to="/contact">Ask the house for personal help.</Link></p>}</section>}</div>;
+}
+
+function Cart({ products, cart, setQuantity, remove }) {
+  const items = cart.map(item => ({ ...item, product: products.find(product => product.id === item.id) })).filter(item => item.product);
+  const complete = items.length && items.every(item => item.product.verified && Number.isFinite(item.product.price) && item.product.stock >= item.quantity);
+  const subtotal = complete ? items.reduce((sum, item) => sum + item.product.price * item.quantity, 0) : null;
+  return <div className="page-shell"><div className="page-heading"><span className="eyebrow">YOUR BAG</span><h1>Review your <em>selection.</em></h1><p>Your bag is preserved during normal browsing. Full pricing and availability must be verified before checkout.</p></div>{items.length ? <><div className="cart-list">{items.map(item => <article key={item.id}><Link to={`/product/${item.id}`}>{item.product.name}</Link><span>{item.product.size || 'Size pending'} · {formatPrice(item.product.price)}</span><label>Quantity<input type="number" min="1" max={Math.max(1, item.product.stock)} value={item.quantity} onChange={e => setQuantity(item.id, Number(e.target.value))}/></label><button type="button" onClick={() => remove(item.id)}>Remove</button></article>)}</div><div className="cart-summary"><span>Subtotal</span><strong>{subtotal === null ? 'Pending verified prices' : formatPrice(subtotal)}</strong>{complete ? <Link to="/checkout" className="solid-button">Continue to checkout →</Link> : <p>Checkout remains closed until product prices, sizes and stock are verified.</p>}</div></> : <div className="empty-results"><h2>Your bag is empty.</h2><Link to="/collections" className="text-link">Explore the collection ↗</Link></div>}</div>;
+}
+
+function Checkout({ products, cart, config }) {
+  const items = cart.map(item => ({ ...item, product: products.find(product => product.id === item.id) })).filter(item => item.product);
+  const ready = config.checkoutEnabled && items.length && items.every(item => item.product.verified && Number.isFinite(item.product.price) && item.product.stock >= item.quantity);
+  return <div className="page-shell narrow"><div className="page-heading"><span className="eyebrow">CHECKOUT</span><h1>Confirm every <em>detail.</em></h1><p>The full order summary, delivery fee and estimate must be shown before payment.</p></div><section className="checkout-gate"><h2>{ready ? 'Checkout ready' : 'Live payment is not available yet.'}</h2><p>The guide's launch gate requires a legally supported payment provider, verified product data, delivery fees, notifications and refund workflow to pass end-to-end testing. These business settings are not configured, so no payment or order is accepted.</p><dl><div><dt>Products</dt><dd>{items.length ? items.map(item => `${item.quantity} × ${item.product.name}`).join(', ') : 'No items'}</dd></div><div><dt>Delivery</dt><dd>{config.deliverySummary || 'Delivery zones, fees and estimates pending confirmation'}</dd></div><div><dt>Payment</dt><dd>Payment provider pending business approval</dd></div><div><dt>Returns</dt><dd>{config.returnsSummary || 'Returns process pending legal and operational confirmation'}</dd></div></dl><Link to="/contact" className="outline-button">Ask for ordering help <span>↗</span></Link></section></div>;
+}
+
+const guideSections = [
+  ['Fragrance families', 'Fresh fragrances feel bright and airy; floral compositions centre flowers; woody fragrances feel dry or creamy; amber styles are warm and enveloping. Families are a starting point, not a rule.'],
+  ['Opening, heart and base', 'The opening is what you notice first. The heart becomes clearer after a few minutes. Base notes are the slower, lasting foundation.'],
+  ['Bottle size', 'Choose a size based on how often you expect to wear the fragrance. Confirm the listed volume before ordering.'],
+  ['Testing a scent', 'Try on clean skin when possible and allow time for the fragrance to settle. Performance varies by skin, environment and use.'],
+  ['Choosing for an occasion', 'Fresh or quiet styles often suit daytime and work; richer woods and amber styles are commonly chosen for evenings. Your preference matters most.']
+];
+
+function FragranceGuide() {
+  return <div className="page-shell"><div className="page-heading"><span className="eyebrow">THE ART OF FRAGRANCE</span><h1>Choose with <em>confidence.</em></h1><p>A practical introduction to families, notes, bottle sizes and testing.</p></div><div className="information-grid">{guideSections.map(([title, body]) => <article key={title}><h2>{title}</h2><p>{body}</p></article>)}</div></div>;
+}
+
+const faqItems = [
+  ['Are the products authentic?', 'We publish sourcing and authenticity information only when it is supported by supplier documentation. Product-specific evidence and the store sourcing approach will be added before sales open.'],
+  ['Where do you deliver?', 'Delivery areas, fees and estimates are awaiting confirmation and will be shown before an order can be placed.'],
+  ['How can I pay?', 'No live payment is accepted until a legally supported provider is configured and tested end to end.'],
+  ['Can I return an opened fragrance?', 'Eligibility depends on the final returns policy and applicable law. The confirmed conditions will be published before sales open.'],
+  ['How do I choose a fragrance?', 'Use Help Me Choose or contact the house with the scent family, occasion and budget you prefer.'],
+  ['How do I track an order?', 'Use the order code and phone number supplied when the house confirms your order.']
+];
+
+function FAQ() {
+  return <div className="page-shell narrow"><div className="page-heading"><span className="eyebrow">FREQUENTLY ASKED QUESTIONS</span><h1>Clear answers, <em>without guesswork.</em></h1></div><div className="faq-list">{faqItems.map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}</div></div>;
+}
+
+function PolicyPage({ type, config }) {
+  const pages = {
+    trust: ['Sourcing & trust', config.businessIdentity ? `The seller is ${config.businessIdentity}.` : 'The final legal business identity is awaiting confirmation.', 'Supplier invoices, authorization or traceability evidence will be used where available. We do not claim official brand authorization, origin, ingredients, performance or authenticity without supporting documentation.'],
+    delivery: ['Delivery information', config.deliverySummary || 'Delivery locations, fees, dispatch timing, tracking and realistic estimates are awaiting operational confirmation.', 'The full delivery charge and estimate will be shown before an order can be confirmed. Delayed or damaged parcels will follow the final documented support process.'],
+    returns: ['Returns & refunds', config.returnsSummary || 'Eligible conditions, time limits, refund method and restrictions for opened fragrances are awaiting legal and operational confirmation.', 'No sale will open until the returns process is published and tested.'],
+    privacy: ['Privacy policy', 'We collect only the information needed to answer messages, manage orders, publish consented stories and maintain newsletter preferences.', 'Order and support data is stored in restricted business systems. We do not sell personal information. Retention periods, processors and the official privacy contact will be finalized with the business identity before sales open.'],
+    terms: ['Terms & conditions', 'Live orders and payments are currently disabled.', 'Order acceptance, payment, pricing errors, availability, delivery, liability and disputes must be reviewed for Nepalese law and the final operating business before sales open.']
+  };
+  const [title, lead, body] = pages[type];
+  return <div className="page-shell narrow"><div className="page-heading"><span className="eyebrow">CUSTOMER PROTECTION</span><h1>{title}</h1><p>{lead}</p></div><section className="policy-copy"><h2>Current position</h2><p>{body}</p><p className="policy-status">Pre-launch notice: this page does not replace the final business-approved policy.</p><Link to="/contact" className="text-link">Ask a question ↗</Link></section></div>;
+}
+
+function Unsubscribe() {
+  const token = new URLSearchParams(useLocation().search).get('token') || '';
+  const [message, setMessage] = useState('');
+  async function unsubscribe() { try { setMessage((await api('/api/newsletter/unsubscribe', { method: 'POST', body: JSON.stringify({ token }) })).message); } catch (e) { setMessage(e.message); } }
+  return <div className="page-shell narrow"><div className="page-heading"><span className="eyebrow">EMAIL PREFERENCES</span><h1>Unsubscribe.</h1><p>Stop future newsletter messages from Golden Perfume House.</p></div><button className="solid-button" type="button" disabled={!token} onClick={unsubscribe}>Confirm unsubscribe</button>{message && <p role="status">{message}</p>}</div>;
+}
+
+function Review({ products }) {
+  const [form, setForm] = useState({ code: '', phone: '', productId: '', rating: '5', name: '', quote: '', permission: false });
+  const [message, setMessage] = useState(''); const [error, setError] = useState('');
+  async function submit(event) { event.preventDefault(); setMessage(''); setError(''); try { const result = await api('/api/reviews', { method: 'POST', body: JSON.stringify({ ...form, productId: Number(form.productId), rating: Number(form.rating) }) }); setMessage(result.message); } catch (e) { setError(e.message); } }
+  return <div className="page-shell narrow"><div className="page-heading"><span className="eyebrow">VERIFIED BUYER REVIEW</span><h1>Share your <em>experience.</em></h1><p>A matching delivered order is required. Reviews are moderated for abuse and spam, never for a negative opinion.</p></div><form className="guided-form" onSubmit={submit}><label>Order code<input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} required placeholder="SL-XXXXXXXX"/></label><label>Phone number<input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} required/></label><label>Fragrance<select value={form.productId} onChange={e => setForm({ ...form, productId: e.target.value })} required><option value="">Choose a fragrance</option>{products.map(product => <option value={product.id} key={product.id}>{product.name}</option>)}</select></label><label>Rating<select value={form.rating} onChange={e => setForm({ ...form, rating: e.target.value })}>{[5,4,3,2,1].map(value => <option key={value} value={value}>{value} / 5</option>)}</select></label><label>Name<input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}/></label><label>Review<textarea value={form.quote} onChange={e => setForm({ ...form, quote: e.target.value })} required maxLength="1000"/></label><label className="consent-check"><input type="checkbox" checked={form.permission} onChange={e => setForm({ ...form, permission: e.target.checked })} required/> I give permission to publish this review after moderation.</label><button className="solid-button">Submit review →</button>{message && <p className="form-success" role="status">{message}</p>}{error && <p className="form-error" role="alert">{error}</p>}</form></div>;
+}
+
 function Testimonials() {
   const [items, setItems] = useState([]);
+  const [story, setStory] = useState({ name: '', quote: '', permission: false });
+  const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
   useEffect(() => { api('/api/testimonials').then(setItems).catch(console.error); }, []);
   const types = ['text', 'audio', 'video'];
-  return <div className="page-shell"><div className="page-heading"><span className="eyebrow">CLIENT STORIES</span><h1>In their <em>own words.</em></h1><p>Every fragrance becomes part of someone's story. This is where those stories belong.</p></div><div className="testimonial-grid">{types.map(type => { const matches = items.filter(item => item.type === type); return <section className="testimonial-column" key={type}><span className="eyebrow">{type.toUpperCase()} STORIES</span>{matches.length ? matches.map((item, i) => <article className="testimonial-card" key={i}><h2>{item.title || 'A GOLDEN PERFUME HOUSE story'}</h2>{type === 'text' ? <blockquote>“{item.quote}”</blockquote> : type === 'audio' ? <audio controls src={item.src}>Your browser does not support audio.</audio> : <video controls preload="metadata" src={item.src}>Your browser does not support video.</video>}<span>{item.name || 'GOLDEN PERFUME HOUSE client'}</span></article>) : <div className="story-placeholder"><span>{type === 'text' ? '“' : type === 'audio' ? '♫' : '▷'}</span><h2>{type === 'text' ? 'Words to come.' : type === 'audio' ? 'Voices to come.' : 'Moments to come.'}</h2><p>Approved client {type} stories will appear here.</p></div>}</section>; })}</div></div>;
+  async function submit(event) { event.preventDefault(); setError(''); setNotice(''); try { const result = await api('/api/testimonials', { method: 'POST', body: JSON.stringify(story) }); setNotice(result.message); setStory({ name: '', quote: '', permission: false }); } catch (e) { setError(e.message); } }
+  return <div className="page-shell"><div className="page-heading"><span className="eyebrow">CLIENT STORIES</span><h1>In their <em>own words.</em></h1><p>Every fragrance becomes part of someone's story. Only stories approved for publication appear here.</p></div><div className="testimonial-grid">{types.map(type => { const matches = items.filter(item => item.type === type); return <section className="testimonial-column" key={type}><span className="eyebrow">{type.toUpperCase()} STORIES</span>{matches.length ? matches.map((item, i) => <article className="testimonial-card" key={i}><h2>{item.title || 'A GOLDEN PERFUME HOUSE story'}</h2>{type === 'text' ? <blockquote>“{item.quote}”</blockquote> : type === 'audio' ? <audio controls src={item.src}>Your browser does not support audio.</audio> : <video controls preload="metadata" src={item.src}>Your browser does not support video.</video>}<span>{item.name || 'GOLDEN PERFUME HOUSE client'}{item.verifiedBuyer ? ' · Verified buyer' : ''}</span></article>) : <div className="story-placeholder"><span>{type === 'text' ? '“' : type === 'audio' ? '♫' : '▷'}</span><h2>{type === 'text' ? 'Words to come.' : type === 'audio' ? 'Voices to come.' : 'Moments to come.'}</h2><p>Approved client {type} stories will appear here.</p></div>}</section>; })}</div><form className="story-submit guided-form" onSubmit={submit}><span className="eyebrow">A FRAGRANCE, A MEMORY, A STORY</span><h2>Share a memory.</h2><p>Does a particular scent remind you of a person, place or special moment? Submitted stories remain private until reviewed.</p><label>Your name<input value={story.name} onChange={e => setStory({ ...story, name: e.target.value })} required/></label><label>Your story<textarea value={story.quote} onChange={e => setStory({ ...story, quote: e.target.value })} required maxLength="1000"/></label><label className="consent-check"><input type="checkbox" checked={story.permission} onChange={e => setStory({ ...story, permission: e.target.checked })} required/> I give permission for the house to review this story for possible publication.</label><button className="solid-button">Submit story →</button>{notice && <p role="status">{notice}</p>}{error && <p className="form-error" role="alert">{error}</p>}</form></div>;
 }
 
 function TrackOrder() {
@@ -330,8 +441,11 @@ function TrackOrder() {
   return <div className="page-shell narrow"><div className="page-heading"><span className="eyebrow">ORDER ASSISTANCE</span><h1>Follow the <em>journey.</em></h1><p>Enter the order code and phone number shared when your order was confirmed.</p></div><form className="track-form" onSubmit={submit}><label>Order code<input value={code} onChange={e => setCode(e.target.value)} placeholder="SL-XXXXXXXX" required/></label><label>Phone number<input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Number used for your order" required/></label><button className="solid-button" disabled={busy}>{busy ? 'Looking up your order…' : 'Track order →'}</button>{error && <p className="form-error" role="alert">{error}</p>}</form>{order && <section className={`tracking-result ${isCancelled ? 'is-cancelled' : ''}`} aria-label={`Tracking for order ${order.code}`}><div className="tracking-summary"><div><span className="eyebrow">ORDER {order.code}</span><h2>{order.status}</h2><p>{order.products.join(', ')}</p></div>{!isCancelled && <div className="tracking-current"><span>Current stage</span><strong>{String(currentStage + 1).padStart(2, '0')} <small>/ {String(trackingStages.length).padStart(2, '0')}</small></strong></div>}</div>{isCancelled ? <div className="tracking-exception"><strong>This order has been cancelled.</strong><span>Please contact the house if you need any assistance.</span></div> : <><div className="tracking-route-heading"><span className="eyebrow">LIVE DELIVERY JOURNEY</span><div className="tracking-destination"><span>Destination</span><strong>{destinationCopy}</strong></div></div><div className="tracking-journey" style={{ '--tracking-progress': `${progress}%` }}><div className="tracking-line" aria-hidden="true"><span/></div><ol>{trackingStages.map((stage, index) => { const event = historyByStatus.get(stage.status); const state = index < currentStage ? (event ? 'complete' : 'passed') : index === currentStage ? 'current' : 'upcoming'; return <li key={stage.status} className={state}><span className="tracking-marker" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><div><strong>{stage.title}</strong>{event && <time>{new Date(event.at).toLocaleString()}</time>}<span className="sr-only">{state === 'complete' ? 'Completed' : state === 'passed' ? 'Passed without a recorded update' : state === 'current' ? 'Current stage' : 'Upcoming stage'}</span></div></li>; })}</ol></div><div className={`tracking-review ${isDelivered ? 'available' : ''}`}><span className="review-marker" aria-hidden="true">07</span><div><span className="eyebrow">CLIENT REVIEW</span><h3>{isDelivered ? 'Your story is ready to be shared.' : 'Review invitation follows delivery.'}</h3></div>{isDelivered ? <Link to="/contact" className="outline-button">Share a review <span>↗</span></Link> : <span className="review-state">After delivery</span>}</div></>}</section>}</div>;
 }
 
-function Contact({ whatsapp }) {
-  return <div className="page-shell narrow"><div className="page-heading"><span className="eyebrow">GET IN TOUCH</span><h1>Let's <em>talk fragrance.</em></h1><p>Whether you're choosing a signature scent or asking about an order, we'd love to hear from you.</p></div><div className="contact-panel"><span className="eyebrow">PERSONAL ASSISTANCE</span><h2>A conversation begins here.</h2><p>Send us a message on WhatsApp and we'll help with availability, selection, and ordering.</p><WhatsAppButton whatsapp={whatsapp}/></div></div>;
+function Contact({ whatsapp, supportEmail }) {
+  const [form, setForm] = useState({ name: '', contact: '', topic: 'Choosing a fragrance', message: '' });
+  const [notice, setNotice] = useState(''); const [error, setError] = useState('');
+  async function submit(event) { event.preventDefault(); setError(''); setNotice(''); try { const result = await api('/api/contact', { method: 'POST', body: JSON.stringify(form) }); setNotice(result.message); setForm({ name: '', contact: '', topic: 'Choosing a fragrance', message: '' }); } catch (e) { setError(e.message); } }
+  return <div className="page-shell narrow"><div className="page-heading"><span className="eyebrow">GET IN TOUCH</span><h1>Let's <em>talk fragrance.</em></h1><p>Whether you're choosing a signature scent or asking about an order, we'd love to hear from you.</p></div><div className="contact-panel"><span className="eyebrow">PERSONAL ASSISTANCE</span><h2>A conversation begins here.</h2><p>Need help before ordering? Talk to us. We are happy to help you choose.</p><WhatsAppButton whatsapp={whatsapp}/>{supportEmail && <a href={`mailto:${supportEmail}`}>{supportEmail}</a>}</div><form className="guided-form contact-form" onSubmit={submit}><h2>Send a message</h2><p>We ask only for the details needed to reply. Expect a response within two business days.</p><label>Name<input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required/></label><label>Email or phone<input value={form.contact} onChange={e => setForm({ ...form, contact: e.target.value })} required/></label><label>Topic<select value={form.topic} onChange={e => setForm({ ...form, topic: e.target.value })}><option>Choosing a fragrance</option><option>Product availability</option><option>Order support</option><option>Delivery or returns</option><option>Privacy question</option><option>Other</option></select></label><label>Message<textarea value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} required maxLength="1200"/></label><button className="solid-button">Send message →</button>{notice && <p className="form-success" role="status">{notice}</p>}{error && <p className="form-error" role="alert">{error}</p>}</form></div>;
 }
 
 function Admin({ products }) {
@@ -350,6 +464,18 @@ function Admin({ products }) {
   async function addStory(event) { event.preventDefault(); try { await adminApi('/api/admin/testimonials', { method: 'POST', body: JSON.stringify(story) }); setStory({ type: 'text', name: '', title: '', quote: '', src: '', approved: false }); setNotice('Story added.'); await load(); } catch (e) { setError(e.message); } }
   async function approveStory(id, approved) { try { await adminApi(`/api/admin/testimonials/${id}`, { method: 'PATCH', body: JSON.stringify({ approved }) }); await load(); } catch (e) { setError(e.message); } }
   return <div className="page-shell admin-page"><div className="page-heading"><span className="eyebrow">HOUSE OPERATIONS</span><h1>House <em>management.</em></h1></div>{!key ? <form className="track-form" onSubmit={login}><label>Admin API key<input type="password" value={draftKey} onChange={e => setDraftKey(e.target.value)} required autoComplete="current-password"/></label><button className="solid-button">Sign in →</button>{error && <p className="form-error">{error}</p>}</form> : <><div className="admin-toolbar"><button onClick={() => { sessionStorage.removeItem('silence-admin-key'); setKey(''); setOrders([]); setStories([]); }}>Sign out</button><button onClick={() => load()}>Refresh data</button></div><form className="admin-create" onSubmit={create}><h2>Create an order</h2><div className="admin-fields"><label>Customer name<input required value={form.customerName} onChange={e => setForm({ ...form, customerName: e.target.value })}/></label><label>Phone number<input required value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}/></label></div><fieldset><legend>Fragrances</legend>{products.map(product => <label key={product.id}><input type="checkbox" checked={form.productIds.includes(product.id)} onChange={e => setForm({ ...form, productIds: e.target.checked ? [...form.productIds, product.id] : form.productIds.filter(id => id !== product.id) })}/>{product.name}</label>)}</fieldset><button className="solid-button">Create order →</button></form>{notice && <p className="form-success" role="status">{notice}</p>}{error && <p className="form-error" role="alert">{error}</p>}<div className="admin-orders"><h2>Orders</h2>{orders.length ? orders.map(order => <article key={order.code} className="admin-order"><div><strong>{order.code}</strong><span>{order.customerName} · {order.phone}</span><span>{order.productIds.map(id => products.find(p => p.id === id)?.name).filter(Boolean).join(', ')}</span></div><label>Status<select value={order.status} onChange={e => changeStatus(order.code, e.target.value)}>{statusOptions.map(status => <option key={status}>{status}</option>)}</select></label></article>) : <p>No orders yet.</p>}</div><form className="admin-create story-admin-form" onSubmit={addStory}><h2>Add a client story</h2><div className="admin-fields"><label>Format<select value={story.type} onChange={e => setStory({ ...story, type: e.target.value })}><option value="text">Text</option><option value="audio">Audio</option><option value="video">Video</option></select></label><label>Client name<input required value={story.name} onChange={e => setStory({ ...story, name: e.target.value })}/></label></div><label>Title<input value={story.title} onChange={e => setStory({ ...story, title: e.target.value })}/></label>{story.type === 'text' ? <label>Quote<textarea required value={story.quote} onChange={e => setStory({ ...story, quote: e.target.value })}/></label> : <label>HTTPS media URL<input type="url" required value={story.src} onChange={e => setStory({ ...story, src: e.target.value })} placeholder="https://…"/></label>}<label className="approve-checkbox"><input type="checkbox" checked={story.approved} onChange={e => setStory({ ...story, approved: e.target.checked })}/> Approved for publication</label><button className="solid-button">Add story →</button></form><div className="admin-orders"><h2>Client stories</h2>{stories.length ? stories.map(item => <article className="admin-order" key={item.id}><div><strong>{item.title || item.type}</strong><span>{item.name} · {item.type}</span></div><label>Approved<select value={String(item.approved)} onChange={e => approveStory(item.id, e.target.value === 'true')}><option value="false">No</option><option value="true">Yes</option></select></label></article>) : <p>No client stories yet.</p>}</div></>}</div>;
+}
+
+function AdminOperations() {
+  const key = sessionStorage.getItem('silence-admin-key') || '';
+  const [products, setProducts] = useState([]); const [messages, setMessages] = useState([]); const [notice, setNotice] = useState(''); const [error, setError] = useState('');
+  const adminApi = (url, options = {}) => api(url, { ...options, headers: { Authorization: `Bearer ${key}`, ...options.headers } });
+  async function load() { try { const [catalogue, queries] = await Promise.all([api('/api/products'), adminApi('/api/admin/messages')]); setProducts(catalogue); setMessages(queries); setError(''); } catch (e) { setError(e.message); } }
+  useEffect(() => { if (key) load(); }, [key]);
+  async function saveProduct(product) { try { const saved = await adminApi(`/api/admin/products/${product.id}`, { method: 'PATCH', body: JSON.stringify(product) }); setProducts(items => items.map(item => item.id === saved.id ? saved : item)); setNotice(`${saved.name} updated.`); } catch (e) { setError(e.message); } }
+  async function updateMessage(id, status) { try { await adminApi(`/api/admin/messages/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }); await load(); } catch (e) { setError(e.message); } }
+  if (!key) return <div className="page-shell narrow empty-results"><h1>Admin sign-in required.</h1><Link to="/admin" className="text-link">Sign in to house management ↗</Link></div>;
+  return <div className="page-shell admin-page"><div className="page-heading"><span className="eyebrow">HOUSE OPERATIONS</span><h1>Catalogue & <em>queries.</em></h1><p>Publish product data only after checking the supplier list and evidence.</p></div><div className="admin-toolbar"><Link to="/admin">Orders and stories</Link><button onClick={load}>Refresh data</button></div>{notice && <p className="form-success" role="status">{notice}</p>}{error && <p className="form-error" role="alert">{error}</p>}<div className="admin-products">{products.map(product => <form key={product.id} className="admin-create" onSubmit={event => { event.preventDefault(); saveProduct(product); }}><h2>{product.name}</h2><div className="admin-fields"><label>Bottle size<input value={product.size || ''} onChange={e => setProducts(items => items.map(item => item.id === product.id ? { ...item, size: e.target.value } : item))} required/></label><label>Price (NPR)<input type="number" min="0" value={product.price ?? ''} onChange={e => setProducts(items => items.map(item => item.id === product.id ? { ...item, price: Number(e.target.value) } : item))} required/></label><label>Stock<input type="number" min="0" step="1" value={product.stock} onChange={e => setProducts(items => items.map(item => item.id === product.id ? { ...item, stock: Number(e.target.value) } : item))} required/></label><label className="approve-checkbox"><input type="checkbox" checked={product.verified} onChange={e => setProducts(items => items.map(item => item.id === product.id ? { ...item, verified: e.target.checked } : item))}/> Supplier data verified</label></div><button className="solid-button">Save product →</button></form>)}</div><div className="admin-orders"><h2>Customer queries</h2>{messages.length ? messages.map(item => <article className="admin-order" key={item.id}><div><strong>{item.topic}</strong><span>{item.name} · {item.contact}</span><span>{item.message}</span></div><label>Status<select value={item.status} onChange={e => updateMessage(item.id, e.target.value)}><option>New</option><option>In progress</option><option>Resolved</option></select></label></article>) : <p>No customer queries yet.</p>}</div></div>;
 }
 
 function SiteBotanicals() {
@@ -372,7 +498,9 @@ function SiteBotanicals() {
 }
 
 function App() {
-  const [products, setProducts] = useState([]); const [whatsapp, setWhatsapp] = useState('');
+  const [products, setProducts] = useState([]);
+  const [config, setConfig] = useState({ whatsapp: '', supportEmail: '', businessIdentity: '', deliverySummary: '', returnsSummary: '', checkoutEnabled: false, newsletterEnabled: false });
+  const [cart, setCart] = useState(() => { try { return JSON.parse(localStorage.getItem('golden-perfume-cart')) || []; } catch { return []; } });
   const [dataReady, setDataReady] = useState(false);
   const [sceneReady, setSceneReady] = useState(() => window.location.pathname !== '/');
   useEffect(() => {
@@ -380,7 +508,7 @@ function App() {
     Promise.allSettled([api('/api/products'), api('/api/config'), document.fonts?.ready || Promise.resolve()]).then(([productResult, configResult]) => {
       if (!active) return;
       if (productResult.status === 'fulfilled') setProducts(productResult.value); else console.error(productResult.reason);
-      if (configResult.status === 'fulfilled') setWhatsapp(configResult.value.whatsapp); else console.error(configResult.reason);
+      if (configResult.status === 'fulfilled') setConfig(configResult.value); else console.error(configResult.reason);
       setDataReady(true);
     });
     return () => { active = false; };
@@ -400,7 +528,12 @@ function App() {
     }, Math.max(0, (window.location.pathname === '/' ? 1850 : 400) - performance.now()));
     return () => { window.clearTimeout(reveal); window.clearTimeout(removal); };
   }, [dataReady, sceneReady]);
-  return <BrowserRouter><ScrollToTop/><SiteBotanicals/><Header/><main><Routes><Route path="/" element={<Home products={products} onSceneReady={() => setSceneReady(true)}/>}/><Route path="/collections" element={<Collections products={products}/>}/><Route path="/product/:id" element={<ProductDetail products={products} whatsapp={whatsapp}/>}/><Route path="/about" element={<About/>}/><Route path="/testimonials" element={<Testimonials/>}/><Route path="/track" element={<TrackOrder/>}/><Route path="/contact" element={<Contact whatsapp={whatsapp}/>}/><Route path="/admin" element={<Admin products={products}/>}/><Route path="*" element={<div className="page-shell empty-state"><h1>Page not found.</h1><Link to="/" className="text-link">Return home ↗</Link></div>}/></Routes></main><Footer/></BrowserRouter>;
+  useEffect(() => { localStorage.setItem('golden-perfume-cart', JSON.stringify(cart)); }, [cart]);
+  const addToCart = id => setCart(items => { const item = items.find(entry => entry.id === id); return item ? items.map(entry => entry.id === id ? { ...entry, quantity: entry.quantity + 1 } : entry) : [...items, { id, quantity: 1 }]; });
+  const setQuantity = (id, quantity) => setCart(items => items.map(item => item.id === id ? { ...item, quantity: Math.max(1, quantity || 1) } : item));
+  const removeFromCart = id => setCart(items => items.filter(item => item.id !== id));
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  return <BrowserRouter><ScrollToTop/><SiteBotanicals/><Header cartCount={cartCount}/><main><Routes><Route path="/" element={<Home products={products} onSceneReady={() => setSceneReady(true)} onAdd={addToCart}/>}/><Route path="/collections" element={<Collections products={products} onAdd={addToCart}/>}/><Route path="/product/:id" element={<ProductDetail products={products} whatsapp={config.whatsapp} onAdd={addToCart}/>}/><Route path="/scent-finder" element={<ScentFinder products={products}/>}/><Route path="/guide" element={<FragranceGuide/>}/><Route path="/faq" element={<FAQ/>}/><Route path="/cart" element={<Cart products={products} cart={cart} setQuantity={setQuantity} remove={removeFromCart}/>}/><Route path="/checkout" element={<Checkout products={products} cart={cart} config={config}/>}/><Route path="/about" element={<About/>}/><Route path="/testimonials" element={<Testimonials/>}/><Route path="/review" element={<Review products={products}/>}/><Route path="/track" element={<TrackOrder/>}/><Route path="/contact" element={<Contact whatsapp={config.whatsapp} supportEmail={config.supportEmail}/>}/><Route path="/trust" element={<PolicyPage type="trust" config={config}/>}/><Route path="/delivery" element={<PolicyPage type="delivery" config={config}/>}/><Route path="/returns" element={<PolicyPage type="returns" config={config}/>}/><Route path="/privacy" element={<PolicyPage type="privacy" config={config}/>}/><Route path="/terms" element={<PolicyPage type="terms" config={config}/>}/><Route path="/unsubscribe" element={<Unsubscribe/>}/><Route path="/admin" element={<Admin products={products}/>}/><Route path="/admin/operations" element={<AdminOperations/>}/><Route path="*" element={<div className="page-shell empty-state"><h1>Page not found.</h1><Link to="/" className="text-link">Return home ↗</Link></div>}/></Routes></main><Footer config={config}/></BrowserRouter>;
 }
 
 export default App;
