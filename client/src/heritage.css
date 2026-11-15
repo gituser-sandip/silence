@@ -395,3 +395,27 @@ body{background:var(--cream)}
 .story-no-motion .story-feelings-stack{height:auto;min-height:0}
 .story-no-motion .story-feelings-stack article{position:static;opacity:1;visibility:visible;transform:none;padding:25px 0;border-bottom:1px solid #c8b69a;transition:none}
 .story-no-motion .story-feelings-steps{display:none}
+
+/* Keep functional copy comfortably legible without changing the editorial scale. */
+.eyebrow{font-size:12px}
+.brand small{font-size:9px}
+.solid-button,.outline-button,.text-link,.ritual-cta{font-size:12px}
+.hero-scroll,.hero-art-note,.hero-side,.ritual-heading>span:last-child,.product-number,.product-discover{font-size:11px}
+.editorial-band{font-size:11px}
+.ritual-ingredients span{font-size:12px}
+.footer-heading{font-size:11px}
+.footer-grid a:not(.brand),.footer-bottom{font-size:14px}
+.breadcrumb,.detail-vertical,.note-list>div span,.detail-bottom{font-size:12px}
+.detail-assist,.config-notice{font-size:14px}
+.testimonial-card>span,.track-form label,.admin-create label,.admin-create legend,.admin-order label{font-size:12px}
+.tracking-current,.tracking-destination,.tracking-journey li strong,.tracking-journey li time,.review-state{font-size:12px}
+.card-add,.availability-note,.result-count,.product-meta span,.reassurance-links a,.checkout-gate dt,.cart-list label{font-size:12px}
+.catalogue-filters summary{font-size:13px}
+.catalogue-filters label,.guided-form label,.newsletter-form label{font-size:12px}
+.catalogue-filters input,.catalogue-filters select,.guided-form input,.guided-form select,.guided-form textarea,.newsletter-form input,.catalogue-filters button,.newsletter-form button{font-size:15px}
+.story-index,.pillar-grid article>span,.value-list span,.story-scroll,.story-photo figcaption,.story-ingredient-line,.story-feelings-stack article>span{font-size:12px}
+@media(max-width:700px){
+  .eyebrow,.ritual-heading .eyebrow,.story-feelings-copy>.story-index{font-size:11px}
+  .editorial-band,.ritual-ingredients span,.story-ingredient-line{font-size:10px}
+  .hero-art-note{font-size:10px}
+}
