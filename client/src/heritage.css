@@ -246,9 +246,9 @@ body{background:var(--cream)}
 .story-chapter-copy h2{font-size:clamp(58px,5.8vw,94px);margin:25px 0 30px}
 .story-chapter-copy p{font-size:clamp(23px,2vw,29px);max-width:520px;color:#695743;margin:0 0 16px}
 .story-flourish{font:28px Georgia,serif;color:#aa8557;margin-top:24px}
-.story-photo{position:relative;margin:0;min-height:690px;overflow:hidden}
-.story-photo img{display:block;width:100%;height:100%;object-fit:cover;object-position:34% center}
-.story-photo figcaption{position:absolute;bottom:24px;left:28px;padding:12px 17px;background:rgba(241,229,205,.9);font-size:9px;font-weight:700;letter-spacing:.19em;color:#6b5539}
+.story-photo{position:relative;margin:0;min-height:690px;overflow:hidden;background:#c9b48e}
+.story-photo:before{content:'';position:absolute;z-index:1;inset:20px;border:1px solid rgba(248,237,211,.72);pointer-events:none}
+.story-photo img{display:block;width:100%;height:100%;object-fit:cover;object-position:43% 50%;transform:translate3d(0,var(--memory-drift,0px),0) scale(1.035);transition:transform 1.4s cubic-bezier(.2,.7,.2,1),filter 1.2s ease;filter:saturate(.92) contrast(.98)}
 .story-philosophy{padding:115px 8vw 125px;background:#ded1b8}
 .story-philosophy,.story-composition,.story-keepsakes{position:relative;overflow:clip}
 .story-section-heading{text-align:center;max-width:780px;margin:0 auto 60px}
@@ -280,15 +280,16 @@ body{background:var(--cream)}
 .keepsake-scene>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:sepia(.17) saturate(.76) contrast(1.04)}
 .story-feelings-copy{position:relative;display:flex;flex-direction:column;padding:clamp(45px,5vw,85px);border-left:1px solid #c8b69a;background:radial-gradient(circle at 70% 20%,#f8efdf,#e9dcc5)}
 .story-feelings-stack{position:relative;flex:1;min-height:330px}
-.story-feelings-stack article{position:absolute;left:0;right:0;top:50%;opacity:0;visibility:hidden;transform:translateY(calc(-50% + 25px)) scale(.98);transition:opacity .58s ease,transform .7s cubic-bezier(.2,.75,.2,1),visibility .58s}
-.story-feelings-stack article.is-active{opacity:1;visibility:visible;transform:translateY(-50%) scale(1)}
+.story-feelings-stack article{position:absolute;left:0;right:0;top:50%;opacity:0;visibility:hidden;transform:translateY(calc(-50% + 25px)) scale(.98);transition:transform .7s cubic-bezier(.2,.75,.2,1),visibility 0s linear .35s;background:#f1e5d1;padding:10px 0}
+.story-feelings-stack article.is-active{z-index:1;opacity:1;visibility:visible;transform:translateY(-50%) scale(1)}
 .story-feelings-stack article>span{font-size:11px;font-weight:700;letter-spacing:.23em;color:#97734c}
 .story-feelings-stack h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:clamp(43px,4.2vw,70px);line-height:.97;letter-spacing:-.03em;margin:25px 0 18px;overflow-wrap:anywhere}
 .story-feelings-stack article.is-long h3{font-size:clamp(38px,3.5vw,53px);letter-spacing:-.055em;white-space:nowrap}
 .story-feelings-stack p{font-size:clamp(23px,2.2vw,30px);color:#705c45;margin:0}
 .story-feelings-steps{display:flex;gap:10px;width:100%}
-.story-feelings-steps span{height:1px;flex:1;background:#baa98e;transition:background .4s,transform .4s;transform-origin:left}
-.story-feelings-steps span.is-active{background:#8f6037;transform:scaleY(3)}
+.story-feelings-steps button{height:10px;flex:1;background:linear-gradient(#baa98e,#baa98e) center/100% 1px no-repeat;border:0;padding:0;cursor:pointer;transition:background .4s,transform .4s;transform-origin:left}
+.story-feelings-steps button:hover,.story-feelings-steps button:focus-visible{background:linear-gradient(#8f6037,#8f6037) center/100% 3px no-repeat;outline:0}
+.story-feelings-steps button.is-active{background:linear-gradient(#8f6037,#8f6037) center/100% 3px no-repeat}
 .story-sprig{position:absolute;z-index:0;width:clamp(170px,18vw,260px);opacity:.27;pointer-events:none;transform-origin:18% 85%;animation:story-flower-wind 8.5s ease-in-out infinite alternate}
 .story-sprig-left{left:-10px;top:95px}
 .story-sprig-right{right:-10px;top:120px;animation-name:story-flower-wind-reverse}
@@ -325,7 +326,9 @@ body{background:var(--cream)}
   .story-chapter{grid-template-columns:1fr}
   .story-chapter-copy{padding:85px 7vw 70px}
   .story-chapter-copy h2{font-size:clamp(58px,12vw,82px)}
-  .story-photo{min-height:0;height:480px}
+  .story-photo{min-height:0;height:min(88vw,666px);max-height:666px}
+  .story-photo:before{inset:10px}
+  .story-photo img{object-position:24% 42%}
   .story-philosophy,.story-composition,.story-keepsakes{padding:85px 7vw}
   .story-section-heading{margin-bottom:40px}
   .story-principles{grid-template-columns:1fr}
@@ -364,8 +367,7 @@ body{background:var(--cream)}
 .story-hero.is-visible .story-scroll:before{animation:story-draw .85s .65s both}
 @keyframes story-enter{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes story-draw{to{transform:scaleX(1)}}
-.story-photo img{transform:translate3d(0,var(--memory-drift,0px),0) scale(1.075);transition:transform 1.4s cubic-bezier(.2,.7,.2,1)}
-.story-photo.is-visible img{transform:translate3d(0,var(--memory-drift,0px),0) scale(1.045)}
+.story-photo.is-visible img{transform:translate3d(0,var(--memory-drift,0px),0) scale(1.02);filter:saturate(.96) contrast(1)}
 .story-principles article{opacity:0;transform:translateY(18px);transition:opacity .65s ease,transform .8s cubic-bezier(.2,.75,.2,1)}
 .story-principles.is-visible article{opacity:1;transform:translateY(0)}
 .story-principles article:nth-child(2){transition-delay:.13s}
@@ -419,3 +421,5 @@ body{background:var(--cream)}
   .editorial-band,.ritual-ingredients span,.story-ingredient-line{font-size:10px}
   .hero-art-note{font-size:10px}
 }
+
+@media(max-width:700px){.story-hero-art:before,.story-hero-art:after{animation:none}.story-hero-base,.story-hero-ribbon,.story-hero-flower,.story-hero-petals{will-change:auto}}
