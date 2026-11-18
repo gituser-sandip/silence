@@ -23,16 +23,3 @@ Use `/admin` to add text quotes or direct HTTPS URLs to audio/video files. Mark 
 ## Production
 
 The included `vercel.json` builds the React app and routes `/api/*` to Express. Configure the variables documented in `server/.env.example` in the hosting project. Do not put the admin key in any React build variable. For a single-server deployment, run `npm run build` from the repository root and then `npm start`; Express serves `client/build` when present.
-
-## Production checklist
-
-Before launch:
-
-- Set `MONGODB_URI`, `MONGODB_DB`, `ADMIN_API_KEY`, `WHATSAPP_NUMBER`, `SUPPORT_EMAIL`, `BUSINESS_IDENTITY`, `DELIVERY_SUMMARY`, and `RETURNS_SUMMARY` in the hosting provider.
-- Replace the catalogue values with approved prices, sizes, stock counts, and supplier-confirmed notes.
-- Confirm the WhatsApp number uses the country code and accepts enquiry links.
-- Test `/collections`, `/product/:id`, `/cart`, `/track`, `/contact`, and `/admin/operations` on mobile and desktop.
-- Verify order creation, status updates, tracking lookup, newsletter storage, and review moderation against the production database.
-- Keep `.env`, `server/data/`, `node_modules/`, build output, logs, and temporary screenshots out of Git.
-
-The public catalogue and story copy are part of the product experience. Business details, prices, inventory, delivery terms, and legal identity must be approved before publishing.
