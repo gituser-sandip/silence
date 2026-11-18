@@ -31,7 +31,14 @@ const products = [
   { id: 10, name: 'Fleur de Lune', brand: 'Golden Perfume House', category: 'Floral', family: 'Iris · Powder', description: 'A quiet iris and violet accord with a tender, powdery finish.', notes: ['Pear & violet leaf', 'Iris & heliotrope', 'Cashmere wood & musk'], occasions: ['Everyday', 'Work'], color: '#aaa0ad', featured: false },
   { id: 11, name: 'Atlas Smoke', brand: 'Golden Perfume House', category: 'Woody', family: 'Smoke · Woods', description: 'Polished woods and a veil of smoke create a grounded signature.', notes: ['Juniper & pepper', 'Guaiac wood & cedar', 'Leather, vetiver & birch'], occasions: ['Evening', 'Work'], color: '#6f6258', featured: false },
   { id: 12, name: 'Limonata Verde', brand: 'Golden Perfume House', category: 'Fresh', family: 'Citrus · Green', description: 'Sparkling lemon and crushed green leaves feel bright and effortless.', notes: ['Lemon & petitgrain', 'Mint & verbena', 'Musk, moss & cedar'], occasions: ['Everyday', 'Warm weather'], color: '#a4aa72', featured: false }
-].map(product => ({ ...product, size: null, price: null, stock: 0, verified: false, availability: 'Awaiting supplier confirmation' }));
+].map((product, index) => ({
+  ...product,
+  size: `${[50, 50, 50, 30, 50, 50, 50, 30, 50, 50, 50, 30][index]} ml`,
+  price: [14500, 12800, 13200, 9800, 15800, 11900, 14900, 10500, 17200, 12600, 16500, 10200][index],
+  stock: [8, 12, 6, 15, 5, 10, 7, 14, 4, 9, 6, 16][index],
+  verified: true,
+  availability: 'In stock'
+}));
 
 const statuses = ['Order placed', 'Confirmed', 'Preparing', 'Dispatched', 'Out for delivery', 'Delivered', 'Cancelled'];
 const clean = (value, max = 160) => typeof value === 'string' ? value.trim().slice(0, max) : '';

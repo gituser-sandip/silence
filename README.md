@@ -1,6 +1,6 @@
-# SOULVÉ
+# GOLDEN PERFUME HOUSE
 
-Golden Perfume House is a React fragrance storefront with an Express API. It includes a searchable and filterable catalogue, persistent bag, gated checkout summary, scent finder, fragrance guide, FAQs, consented customer stories, verified-buyer reviews, contact workflow, newsletter preferences, trust and policy pages, order tracking, and protected staff operations. The public site begins with a scroll-driven 3D composition and includes a static reduced-motion presentation.
+Golden Perfume House is a React fragrance storefront with an Express API. It presents a curated catalogue of twelve fragrances across four families — Oriental, Floral, Woody, and Fresh — with product notes, sizes, prices, stock, scent guidance, ordering support, customer stories, verified-buyer reviews, delivery information, and order tracking. The home page begins with a scroll-driven 3D composition and includes a static reduced-motion presentation.
 
 ## Run locally
 
@@ -14,7 +14,7 @@ Local development stores orders, product overrides, stories, messages and newsle
 2. After confirming the order in WhatsApp, staff sign in at `/admin` with `ADMIN_API_KEY`, create an order, and share its generated `SL-XXXXXXXX` code with the customer.
 3. Staff update the status in `/admin`. Customers enter their code and registered phone number at `/track` to view progress.
 
-Supplier-dependent fields start unverified and unavailable. Staff can configure verified bottle sizes, prices and stock at `/admin/operations`; public purchase controls remain hidden until those fields are verified. Live payment remains deliberately disabled until a provider, delivery calculation, notifications and refunds are implemented and tested end to end. A WhatsApp link is shown only when `WHATSAPP_NUMBER` is configured.
+Product details in the included catalogue are ready for review and can be edited by staff at `/admin/operations`. Live payment remains deliberately disabled until a provider, delivery calculation, notifications and refunds are implemented and tested end to end. A WhatsApp link is shown only when `WHATSAPP_NUMBER` is configured.
 
 ## Client stories
 
